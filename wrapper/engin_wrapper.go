@@ -7,24 +7,17 @@ import (
 )
 
 func DefaultEngine() *gin.Engine {
-	setGinMod()
-	e := gin.New()
-	e.UseH2C = true
-	e.Use(middleware.Recover(), middleware.Cors(), middleware.Monitor())
-	return e
+	return NewEngine(middleware.Recover(), middleware.Cors(), middleware.Monitor())
 }
 
 func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
-	setGinMod()
-	e := gin.New()
-	e.UseH2C = true
-	e.Use(middlewares...)
-
-	return e
-}
-
-func setGinMod() {
 	if dgsys.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	e := gin.New()
+	e.UseH2C = true
+	e.MaxMultipartMemory = 8 << 20
+	e.Use(middlewares...)
+
+	return e
 }

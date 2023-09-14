@@ -12,7 +12,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go/types"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -28,8 +27,6 @@ const (
 	LOG_LEVEL_ALL     LogLevel = 3
 	DEFAULT_LOG_LEVEL          = LOG_LEVEL_ALL
 )
-
-var once sync.Once
 
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
