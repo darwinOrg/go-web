@@ -113,6 +113,9 @@ func GetUserId(c *gin.Context) int64 {
 
 func GetToken(c *gin.Context) string {
 	token, _ := c.Cookie(constants.Token)
+	if len(token) == 0 {
+		token = c.GetHeader(constants.Token)
+	}
 	return token
 }
 
