@@ -60,6 +60,7 @@ github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGX
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/darwinOrg/go-common v0.0.8 h1:POOazgKV6dh6mVMb6QKH0dYCXkSHzqeVUlU7i5PtUsM=
 github.com/darwinOrg/go-common v0.0.8/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
+github.com/darwinOrg/go-common v0.0.9/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
 github.com/darwinOrg/go-logger v0.0.1 h1:qp/cGIF2aMD3HbvqvZH2cKJjkhAGPwaUkF/Qud9pGOU=
 github.com/darwinOrg/go-logger v0.0.1/go.mod h1:n/8pRxm9ADukt7A4h61G1elKl8EUd7kQ9I2Sz/MF1r0=
 github.com/darwinOrg/go-monitor v0.0.2 h1:TR8xpCSJBg740GOHuLobYIV/0cqO63ZrLUrQzHIxE9I=

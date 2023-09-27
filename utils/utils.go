@@ -90,7 +90,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		UserId:    GetUserId(c),
 		OpId:      getInt64Value(c, constants.OpId),
 		Roles:     c.GetHeader(constants.Roles),
-		BizTypes:  c.GetHeader(constants.BizTypes),
+		BizTypes:  getIntValue(c, constants.BizTypes),
 		GroupId:   getInt64Value(c, constants.GroupId),
 		Platform:  c.GetHeader(constants.Platform),
 		UserAgent: c.GetHeader(constants.UserAgent),
@@ -126,5 +126,14 @@ func getInt64Value(c *gin.Context, header string) int64 {
 		h = "0"
 	}
 	val, _ := strconv.ParseInt(h, 10, 64)
+	return val
+}
+
+func getIntValue(c *gin.Context, header string) int {
+	h := c.GetHeader(header)
+	if h == "" {
+		h = "0"
+	}
+	val, _ := strconv.Atoi(h)
 	return val
 }
