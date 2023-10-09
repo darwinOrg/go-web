@@ -117,6 +117,9 @@ func GetToken(c *gin.Context) string {
 	if len(token) == 0 {
 		token = c.GetHeader(constants.Token)
 	}
+	if len(token) == 0 {
+		token = c.Query(constants.Token)
+	}
 	return token
 }
 
