@@ -126,9 +126,9 @@ func GetToken(c *gin.Context) string {
 }
 
 func GetShareToken(c *gin.Context) string {
-	token := c.GetHeader(constants.ShareToken)
+	token := c.Query(constants.ShareToken)
 	if len(token) == 0 {
-		token = c.Query(constants.ShareToken)
+		token = c.GetHeader(constants.ShareToken)
 	}
 	return token
 }
