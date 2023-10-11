@@ -86,17 +86,19 @@ func GetDgContext(c *gin.Context) *dgctx.DgContext {
 
 func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 	return &dgctx.DgContext{
-		TraceId:   GetTraceId(c),
-		UserId:    GetUserId(c),
-		OpId:      getInt64Value(c, constants.OpId),
-		Roles:     c.GetHeader(constants.Roles),
-		BizTypes:  getIntValue(c, constants.BizTypes),
-		GroupId:   getInt64Value(c, constants.GroupId),
-		Platform:  c.GetHeader(constants.Platform),
-		UserAgent: c.GetHeader(constants.UserAgent),
-		Lang:      GetLang(c),
-		Token:     GetToken(c),
-		RemoteIp:  c.GetHeader(constants.RemoteIp),
+		TraceId:    GetTraceId(c),
+		UserId:     GetUserId(c),
+		OpId:       getInt64Value(c, constants.OpId),
+		RunAs:      getInt64Value(c, constants.RunAs),
+		Roles:      c.GetHeader(constants.Roles),
+		BizTypes:   getIntValue(c, constants.BizTypes),
+		GroupId:    getInt64Value(c, constants.GroupId),
+		Platform:   c.GetHeader(constants.Platform),
+		UserAgent:  c.GetHeader(constants.UserAgent),
+		Lang:       GetLang(c),
+		Token:      GetToken(c),
+		ShareToken: GetShareToken(c),
+		RemoteIp:   c.GetHeader(constants.RemoteIp),
 	}
 }
 
@@ -119,6 +121,14 @@ func GetToken(c *gin.Context) string {
 	}
 	if len(token) == 0 {
 		token = c.Query(constants.Token)
+	}
+	return token
+}
+
+func GetShareToken(c *gin.Context) string {
+	token := c.GetHeader(constants.ShareToken)
+	if len(token) == 0 {
+		token = c.Query(constants.ShareToken)
 	}
 	return token
 }

@@ -27,6 +27,8 @@ var AllowHeaders = []string{
 	"trace_id",
 	"token",
 	"startrek_token",
+	"s-token",
+	"run-as",
 	"company-id",
 	"X-Forwarded-For",
 	"X-Forwarded-Proto",
