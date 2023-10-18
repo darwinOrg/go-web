@@ -100,6 +100,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		ShareToken: GetShareToken(c),
 		RemoteIp:   c.GetHeader(constants.RemoteIp),
 		CompanyId:  getInt64Value(c, constants.CompanyId),
+		Product:    getIntValue(c, constants.Product),
 	}
 }
 
