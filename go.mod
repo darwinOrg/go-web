@@ -3,7 +3,7 @@ module github.com/darwinOrg/go-web
 go 1.19
 
 require (
-	github.com/darwinOrg/go-common v0.0.16
+	github.com/darwinOrg/go-common v0.0.18
 	github.com/darwinOrg/go-logger v0.0.1
 	github.com/darwinOrg/go-monitor v0.0.2
 	github.com/darwinOrg/go-validator-ext v0.0.3

@@ -13,10 +13,10 @@ import (
 )
 
 func Recover() gin.HandlerFunc {
-	return gin.CustomRecovery(recover)
+	return gin.CustomRecovery(myRecover)
 }
 
-func recover(c *gin.Context, err any) {
+func myRecover(c *gin.Context, err any) {
 	dglogger.Errorf(&dgctx.DgContext{TraceId: utils.GetTraceId(c)}, "request error:%v", err)
 
 	// 封装通用json结果返回
