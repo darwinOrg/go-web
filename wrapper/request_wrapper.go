@@ -77,8 +77,7 @@ func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx := utils.GetDgContext(c)
 		if ctx.UserId == 0 {
 			dglogger.Warnf(ctx, "not login in")
-			c.JSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NOT_LOGIN_IN))
-			c.Abort()
+			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NOT_LOGIN_IN))
 			return
 		}
 
