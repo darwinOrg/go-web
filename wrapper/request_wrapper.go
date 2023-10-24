@@ -2,16 +2,20 @@ package wrapper
 
 import (
 	"encoding/json"
+	"errors"
+	dgcoll "github.com/darwinOrg/go-common/collection"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
-	dgsys "github.com/darwinOrg/go-common/sys"
 	dglogger "github.com/darwinOrg/go-logger"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go/types"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 )
 
@@ -106,12 +110,23 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		} else {
 			req := new(T)
 			if err := c.ShouldBind(req); err != nil {
-				dglogger.Errorf(ctx, "bind request object error: %v", err)
-				errMsg := ve.TranslateValidateError(err, ctx.Lang)
-				if errMsg != "" && !dgsys.IsProd() {
-					rt = result.SimpleFail[string](errMsg)
-				} else {
-					rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+				var errs validator.ValidationErrors
+				ok := errors.As(err, &errs)
+				if ok {
+					dglogger.Errorf(ctx, "bind request object error: %v", err)
+
+					errNss := dgcoll.Trans2Map(errs, func(fe validator.FieldError) string { return fe.Namespace() })
+
+					customErrMsg, otherErrs := getCustomErrMsg(req, errNss)
+					translatedErrMsg := getTranslateErrMsg(otherErrs, ctx.Lang)
+
+					errMsg := strings.TrimSpace(customErrMsg + "\n" + translatedErrMsg)
+
+					if errMsg != "" {
+						rt = result.SimpleFail[string](errMsg)
+					} else {
+						rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+					}
 				}
 			} else {
 				rt = rh.BizHandler(c, ctx, req)
@@ -137,4 +152,71 @@ func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any,
 		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)
 	}
+}
+
+func getCustomErrMsg(req any, errNss map[string]validator.FieldError) (string, []validator.FieldError) {
+	reqType := reflect.TypeOf(req)
+	if reqType.Kind() != reflect.Ptr || reqType.Elem().Kind() != reflect.Struct {
+		return "", getFieldErrors(errNss)
+	}
+
+	errMsgs := findErrMsgs(reqType.Elem(), reqType.Elem().Name(), errNss, "")
+	errMsg := strings.Join(errMsgs, "\n")
+	otherErrs := getFieldErrors(errNss)
+	return errMsg, otherErrs
+}
+
+func findErrMsgs(tType reflect.Type, tName string, errNss map[string]validator.FieldError, t string) []string {
+	var ret []string
+
+	var sType reflect.Type
+	sTypeKind := tType.Kind()
+	if sTypeKind == reflect.Ptr {
+		sType = tType.Elem()
+	} else {
+		sType = tType
+	}
+
+	t = t + tName + "."
+
+	for i := 0; i < sType.NumField(); i++ {
+		field := sType.Field(i)
+		fieldName := field.Name
+		ns := t + fieldName
+		_, ok := errNss[ns]
+		if ok {
+			tag := field.Tag.Get("errMsg")
+			if tag != "" {
+				ret = append(ret, tag)
+				delete(errNss, ns)
+			}
+		}
+
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Ptr && fieldType.Elem().Kind() == reflect.Struct {
+			subret := findErrMsgs(fieldType, fieldName, errNss, t)
+			if len(subret) > 0 {
+				ret = append(ret, subret...)
+			}
+		}
+	}
+	return ret
+}
+
+func getFieldErrors(errNss map[string]validator.FieldError) []validator.FieldError {
+	var errs []validator.FieldError
+	if len(errNss) > 0 {
+		for _, v := range errNss {
+			errs = append(errs, v)
+		}
+	}
+	return errs
+}
+
+func getTranslateErrMsg(errs []validator.FieldError, lng string) string {
+	if len(errs) == 0 {
+		return ""
+	}
+
+	return ve.TranslateValidateError(validator.ValidationErrors(errs), lng)
 }

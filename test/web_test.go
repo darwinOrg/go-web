@@ -26,3 +26,28 @@ func TestGet(t *testing.T) {
 	})
 	engine.Run(fmt.Sprintf(":%d", 8080))
 }
+
+func TestPost(t *testing.T) {
+	monitor.Start("test", 19002)
+
+	engine := wrapper.DefaultEngine()
+	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[string]]{
+		RouterGroup:  engine.Group("/test"),
+		RelativePath: "post",
+		NonLogin:     true,
+		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[string] {
+			return result.Success("Success")
+		},
+	})
+	engine.Run(fmt.Sprintf(":%d", 8080))
+}
+
+type UserRequest struct {
+	Name     string    `binding:"required"`
+	Age      int       `binding:"required,gt=0,lt=100"`
+	UserInfo *userInfo `binding:"required"`
+}
+
+type userInfo struct {
+	Sex int `binding:"required,gt=0,lt=5" errMsg:"性别错误"`
+}
