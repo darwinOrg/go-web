@@ -29,6 +29,7 @@ var AllowHeaders = []string{
 	"s-token",
 	"run-as",
 	"company-id",
+	"product",
 	"X-Forwarded-For",
 	"X-Forwarded-Proto",
 }
