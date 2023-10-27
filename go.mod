@@ -5,12 +5,12 @@ go 1.19
 require (
 	github.com/darwinOrg/go-common v0.0.22
 	github.com/darwinOrg/go-logger v0.0.1
-	github.com/darwinOrg/go-monitor v0.0.2
+	github.com/darwinOrg/go-monitor v0.0.3
 	github.com/darwinOrg/go-validator-ext v0.0.3
 	github.com/gin-contrib/cors v1.4.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.15.5
-	github.com/google/uuid v1.3.1
+	github.com/google/uuid v1.4.0
 )
 
 require (
