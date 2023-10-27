@@ -3,7 +3,6 @@ package wrapper
 import (
 	"encoding/json"
 	"errors"
-	dgcoll "github.com/darwinOrg/go-common/collection"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
@@ -115,15 +114,24 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 				if ok {
 					dglogger.Errorf(ctx, "bind request object error: %v", err)
 
-					errNss := dgcoll.Trans2Map(errs, func(fe validator.FieldError) string { return fe.Namespace() })
+					customErrMsgs := getCustomErrMsgs(req)
 
-					customErrMsg, otherErrs := getCustomErrMsg(req, errNss)
-					translatedErrMsg := getTranslateErrMsg(otherErrs, ctx.Lang)
+					var errMsgs []string
+					for _, e := range errs {
+						ns := e.Namespace()
+						customErrMsg, ok2 := customErrMsgs[ns]
+						if ok2 {
+							errMsgs = append(errMsgs, customErrMsg)
+						} else {
+							translateErrMsg := getTranslateErrMsg(e, ctx.Lang)
+							errMsgs = append(errMsgs, translateErrMsg)
+						}
+					}
 
-					errMsg := strings.TrimSpace(customErrMsg + "\n" + translatedErrMsg)
+					msg := strings.Join(errMsgs, "\n")
 
-					if errMsg != "" {
-						rt = result.SimpleFail[string](errMsg)
+					if msg != "" {
+						rt = result.SimpleFail[string](msg)
 					} else {
 						rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
 					}
@@ -154,21 +162,18 @@ func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any,
 	}
 }
 
-func getCustomErrMsg(req any, errNss map[string]validator.FieldError) (string, []validator.FieldError) {
+func getCustomErrMsgs(req any) map[string]string {
 	reqType := reflect.TypeOf(req)
 	if reqType.Kind() != reflect.Ptr || reqType.Elem().Kind() != reflect.Struct {
-		return "", getFieldErrors(errNss)
+		return map[string]string{}
 	}
 
-	errMsgs := findErrMsgs(reqType.Elem(), reqType.Elem().Name(), errNss, "")
-	errMsg := strings.Join(errMsgs, "\n")
-	otherErrs := getFieldErrors(errNss)
-	return errMsg, otherErrs
+	errMsgs := map[string]string{}
+	findCustomErrMsgs(reqType.Elem(), reqType.Elem().Name(), "", errMsgs)
+	return errMsgs
 }
 
-func findErrMsgs(tType reflect.Type, tName string, errNss map[string]validator.FieldError, t string) []string {
-	var ret []string
-
+func findCustomErrMsgs(tType reflect.Type, tName string, tPath string, errMsgs map[string]string) {
 	var sType reflect.Type
 	sTypeKind := tType.Kind()
 	if sTypeKind == reflect.Ptr {
@@ -177,46 +182,25 @@ func findErrMsgs(tType reflect.Type, tName string, errNss map[string]validator.F
 		sType = tType
 	}
 
-	t = t + tName + "."
+	tPath = tPath + tName + "."
 
 	for i := 0; i < sType.NumField(); i++ {
-		field := sType.Field(i)
-		fieldName := field.Name
-		ns := t + fieldName
-		_, ok := errNss[ns]
-		if ok {
-			tag := field.Tag.Get("errMsg")
-			if tag != "" {
-				ret = append(ret, tag)
-				delete(errNss, ns)
-			}
+		f := sType.Field(i)
+		fType := f.Type
+		fName := f.Name
+
+		errMsg := f.Tag.Get("errMsg")
+		if errMsg != "" {
+			ns := tPath + fName
+			errMsgs[ns] = errMsg
 		}
 
-		fieldType := field.Type
-		if fieldType.Kind() == reflect.Ptr && fieldType.Elem().Kind() == reflect.Struct {
-			subret := findErrMsgs(fieldType, fieldName, errNss, t)
-			if len(subret) > 0 {
-				ret = append(ret, subret...)
-			}
+		if fType.Kind() == reflect.Ptr && fType.Elem().Kind() == reflect.Struct {
+			findCustomErrMsgs(fType, fName, tPath, errMsgs)
 		}
 	}
-	return ret
 }
 
-func getFieldErrors(errNss map[string]validator.FieldError) []validator.FieldError {
-	var errs []validator.FieldError
-	if len(errNss) > 0 {
-		for _, v := range errNss {
-			errs = append(errs, v)
-		}
-	}
-	return errs
-}
-
-func getTranslateErrMsg(errs []validator.FieldError, lng string) string {
-	if len(errs) == 0 {
-		return ""
-	}
-
-	return ve.TranslateValidateError(validator.ValidationErrors(errs), lng)
+func getTranslateErrMsg(err validator.FieldError, lng string) string {
+	return ve.TranslateValidateError(validator.ValidationErrors{err}, lng)
 }

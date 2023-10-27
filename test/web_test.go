@@ -43,7 +43,7 @@ func TestPost(t *testing.T) {
 }
 
 type UserRequest struct {
-	Name     string    `binding:"required"`
+	Name     string    `binding:"required" errMsg:"姓名错误:不能为空"`
 	Age      int       `binding:"required,gt=0,lt=100"`
 	UserInfo *userInfo `binding:"required"`
 }
