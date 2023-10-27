@@ -32,6 +32,7 @@ var AllowHeaders = []string{
 	"product",
 	"X-Forwarded-For",
 	"X-Forwarded-Proto",
+	"Authorization",
 }
 
 func Cors() gin.HandlerFunc {
