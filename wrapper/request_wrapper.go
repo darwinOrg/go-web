@@ -109,11 +109,11 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		} else {
 			req := new(T)
 			if err := c.ShouldBind(req); err != nil {
+				dglogger.Errorf(ctx, "bind request object error: %v", err)
+
 				var errs validator.ValidationErrors
 				ok := errors.As(err, &errs)
 				if ok {
-					dglogger.Errorf(ctx, "bind request object error: %v", err)
-
 					customErrMsgs := getCustomErrMsgs(req)
 
 					var errMsgs []string
@@ -132,10 +132,13 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 					if msg != "" {
 						rt = result.SimpleFail[string](msg)
-					} else {
-						rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
 					}
 				}
+
+				if rt == nil {
+					rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+				}
+
 			} else {
 				rt = rh.BizHandler(c, ctx, req)
 			}
