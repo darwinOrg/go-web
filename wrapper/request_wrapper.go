@@ -158,7 +158,7 @@ func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any,
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, latency)
 	} else if ll == LOG_LEVEL_PARAM {
 		rpBytes, _ := json.Marshal(rp)
-		dglogger.Infof(ctx, "path: %s, context: %sv, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
 	} else if ll == LOG_LEVEL_RETURN {
 		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)
