@@ -6,6 +6,7 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
+	dgsys "github.com/darwinOrg/go-common/sys"
 	dglogger "github.com/darwinOrg/go-logger"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
@@ -30,6 +31,8 @@ const (
 	LOG_LEVEL_ALL     LogLevel = 3
 	DEFAULT_LOG_LEVEL          = LOG_LEVEL_ALL
 )
+
+var myEnv = dgsys.GetProfile()
 
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
@@ -88,12 +91,25 @@ func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
+func checkEnv(c *gin.Context, ctx *dgctx.DgContext) bool {
+	values := c.Request.Header["profile"]
+	if len(values) == 0 || len(values[0]) == 0 {
+		return true
+	}
+	chked := values[0] == myEnv
+	if !chked {
+		dglogger.Infof(ctx, "invalid profile,your profile is %s, current profile is %s", values[0], myEnv)
+	}
+	return chked
+}
+
 func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		if rh.LogLevel.Value() == 0 {
 			rh.LogLevel = DEFAULT_LOG_LEVEL
 		}
+
 		ctx := utils.GetDgContext(c)
 		rp := utils.GetAllRequestParams(c, ctx)
 
@@ -101,7 +117,9 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		dglogger.Infof(ctx, "path: %s, params: %s", c.Request.URL.Path, rpBytes)
 
 		var rt any
-		if rh.mapRequestObj {
+		if !checkEnv(c, ctx) {
+			rt = result.SimpleFail[string]("your call incorrect env")
+		} else if rh.mapRequestObj {
 			var ro any
 			ro = &MapRequest{MP: rp}
 			req := ro.(*T)
