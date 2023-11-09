@@ -127,11 +127,11 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		} else {
 			req := new(T)
 			if err := c.ShouldBind(req); err != nil {
+				dglogger.Errorf(ctx, "bind request object error: %v", err)
+
 				var errs validator.ValidationErrors
 				ok := errors.As(err, &errs)
 				if ok {
-					dglogger.Errorf(ctx, "bind request object error: %v", err)
-
 					customErrMsgs := getCustomErrMsgs(req)
 
 					var errMsgs []string
@@ -150,10 +150,13 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 					if msg != "" {
 						rt = result.SimpleFail[string](msg)
-					} else {
-						rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
 					}
 				}
+
+				if rt == nil {
+					rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+				}
+
 			} else {
 				rt = rh.BizHandler(c, ctx, req)
 			}
@@ -173,7 +176,7 @@ func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any,
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, latency)
 	} else if ll == LOG_LEVEL_PARAM {
 		rpBytes, _ := json.Marshal(rp)
-		dglogger.Infof(ctx, "path: %s, context: %sv, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
 	} else if ll == LOG_LEVEL_RETURN {
 		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)

@@ -17,8 +17,8 @@ github.com/darwinOrg/go-common v0.0.22 h1:dhvK2mawFTDIXxfNvv9I14ovK6o4QPEFqF7nLO
 github.com/darwinOrg/go-common v0.0.22/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
 github.com/darwinOrg/go-logger v0.0.1 h1:qp/cGIF2aMD3HbvqvZH2cKJjkhAGPwaUkF/Qud9pGOU=
 github.com/darwinOrg/go-logger v0.0.1/go.mod h1:n/8pRxm9ADukt7A4h61G1elKl8EUd7kQ9I2Sz/MF1r0=
-github.com/darwinOrg/go-monitor v0.0.2 h1:TR8xpCSJBg740GOHuLobYIV/0cqO63ZrLUrQzHIxE9I=
-github.com/darwinOrg/go-monitor v0.0.2/go.mod h1:AT/74mYUfucNUUF2X6Qzb+x/I8PqEzVRKPoU9xQrpHA=
+github.com/darwinOrg/go-monitor v0.0.3 h1:zSgB1Tv/O2MIDq0xWPipJWvZsCI23nsn0FecSM59GBs=
+github.com/darwinOrg/go-monitor v0.0.3/go.mod h1:iIKkCWM1bC86jxAsE1TtvPtGhhzIF2dcMc2pQkztbcQ=
 github.com/darwinOrg/go-validator-ext v0.0.3 h1:mS/wiYITKJ//FO+XCcEWabWibwPSlVt+Uy5uv4X9oRI=
 github.com/darwinOrg/go-validator-ext v0.0.3/go.mod h1:AY2v44qPq0a0fqwk5a8MCckCJ4MXyJQPfoYT6dUtdPQ=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -52,8 +52,8 @@ github.com/google/go-cmp v0.5.5/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.6.0 h1:ofyhxvXcZhMsU5ulbFiLKl/XBFqE1GSq7atu8tAmTRI=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=
-github.com/google/uuid v1.3.1 h1:KjJaJ9iWZ3jOFZIf1Lqf4laDRCasjl0BCmnEGxkdLb4=
-github.com/google/uuid v1.3.1/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
+github.com/google/uuid v1.4.0 h1:MtMxsa51/r9yyhkyLsVeVt0B+BGQZzpQiTQ4eHZ8bc4=
+github.com/google/uuid v1.4.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/klauspost/cpuid/v2 v2.0.9/go.mod h1:FInQzS24/EEf25PyTYn52gqo7WaD8xa0213Md/qVLRg=
