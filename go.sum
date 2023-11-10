@@ -15,6 +15,7 @@ github.com/chenzhuoyu/iasm v0.9.0/go.mod h1:Xjy2NpN3h7aUqeqM+woSuuvxmIe6+DDsiNLI
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/darwinOrg/go-common v0.0.27 h1:GHFx29tpRRvOpYmvJMNZMzINaap+O8j8gt0tIiaAXfE=
 github.com/darwinOrg/go-common v0.0.27/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
+github.com/darwinOrg/go-common v0.0.28/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
 github.com/darwinOrg/go-logger v0.0.1 h1:qp/cGIF2aMD3HbvqvZH2cKJjkhAGPwaUkF/Qud9pGOU=
 github.com/darwinOrg/go-logger v0.0.1/go.mod h1:n/8pRxm9ADukt7A4h61G1elKl8EUd7kQ9I2Sz/MF1r0=
 github.com/darwinOrg/go-monitor v0.0.3 h1:zSgB1Tv/O2MIDq0xWPipJWvZsCI23nsn0FecSM59GBs=

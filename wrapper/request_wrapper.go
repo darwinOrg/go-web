@@ -3,6 +3,7 @@ package wrapper
 import (
 	"encoding/json"
 	"errors"
+	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
@@ -32,7 +33,7 @@ const (
 	DEFAULT_LOG_LEVEL          = LOG_LEVEL_ALL
 )
 
-var myEnv = dgsys.GetProfile()
+var myProfile = dgsys.GetProfile()
 
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
@@ -70,7 +71,7 @@ func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 }
 
 func buildHandlerChain[T any, V any](rh *RequestHolder[T, V]) []gin.HandlerFunc {
-	return []gin.HandlerFunc{loginHandler(rh), bizHandler(rh)}
+	return []gin.HandlerFunc{loginHandler(rh), checkProfileHandler(), bizHandler(rh)}
 }
 
 func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
@@ -91,16 +92,24 @@ func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
-func checkEnv(c *gin.Context, ctx *dgctx.DgContext) bool {
-	values := c.Request.Header["profile"]
-	if len(values) == 0 || len(values[0]) == 0 {
-		return true
+func checkProfileHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		values := c.Request.Header[constants.Profile]
+		if len(values) == 0 || len(values[0]) == 0 {
+			c.Next()
+			return
+		}
+
+		chked := values[0] == myProfile
+		if !chked {
+			ctx := utils.GetDgContext(c)
+			dglogger.Warnf(ctx, "invalid profile, your profile is %s, current profile is %s", values[0], myProfile)
+			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFail[string]("your call incorrect profile"))
+			return
+		}
+
+		c.Next()
 	}
-	chked := values[0] == myEnv
-	if !chked {
-		dglogger.Infof(ctx, "invalid profile,your profile is %s, current profile is %s", values[0], myEnv)
-	}
-	return chked
 }
 
 func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
@@ -117,9 +126,7 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		dglogger.Infof(ctx, "path: %s, params: %s", c.Request.URL.Path, rpBytes)
 
 		var rt any
-		if !checkEnv(c, ctx) {
-			rt = result.SimpleFail[string]("your call incorrect env")
-		} else if rh.mapRequestObj {
+		if rh.mapRequestObj {
 			var ro any
 			ro = &MapRequest{MP: rp}
 			req := ro.(*T)
