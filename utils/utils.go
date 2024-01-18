@@ -100,7 +100,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		ShareToken: GetShareToken(c),
 		RemoteIp:   c.GetHeader(constants.RemoteIp),
 		CompanyId:  getInt64Value(c, constants.CompanyId),
-		Product:    getIntValue(c, constants.Product),
+		Product:    GetProduct(c),
 	}
 }
 
@@ -130,6 +130,18 @@ func GetShareToken(c *gin.Context) string {
 		token = c.GetHeader(constants.ShareToken)
 	}
 	return token
+}
+
+func GetProduct(c *gin.Context) int {
+	product := c.GetHeader(constants.Product)
+	if len(product) == 0 {
+		product = c.Query(constants.Product)
+	}
+	if len(product) == 0 {
+		return 0
+	}
+	val, _ := strconv.Atoi(product)
+	return val
 }
 
 func getInt64Value(c *gin.Context, header string) int64 {
