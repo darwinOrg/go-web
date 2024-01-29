@@ -100,8 +100,7 @@ func checkProfileHandler() gin.HandlerFunc {
 			return
 		}
 
-		chked := values[0] == myProfile
-		if !chked {
+		if values[0] != myProfile {
 			ctx := utils.GetDgContext(c)
 			dglogger.Warnf(ctx, "invalid profile, your profile is %s, current profile is %s", values[0], myProfile)
 			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFail[string]("your call incorrect profile"))
@@ -169,7 +168,9 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 			}
 		}
 		printBizHandlerLog(c, ctx, rp, rt, start, rh.LogLevel)
-		c.JSON(http.StatusOK, rt)
+		if !c.Writer.Written() {
+			c.JSON(http.StatusOK, rt)
+		}
 		c.Next()
 	}
 }
