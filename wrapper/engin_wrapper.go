@@ -18,6 +18,8 @@ func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
 	e.UseH2C = true
 	e.MaxMultipartMemory = 8 << 20
 	e.Use(middlewares...)
+	_ = e.SetTrustedProxies(nil)
+	e.HandleMethodNotAllowed = true
 
 	return e
 }
