@@ -7,7 +7,7 @@ import (
 )
 
 func DefaultEngine() *gin.Engine {
-	return NewEngine(middleware.Recover(), middleware.Cors(), middleware.Monitor())
+	return NewEngine(middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler())
 }
 
 func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
