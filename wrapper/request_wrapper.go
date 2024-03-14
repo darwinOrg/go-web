@@ -3,6 +3,7 @@ package wrapper
 import (
 	"encoding/json"
 	"errors"
+	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
@@ -71,7 +72,7 @@ func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 }
 
 func buildHandlerChain[T any, V any](rh *RequestHolder[T, V]) []gin.HandlerFunc {
-	return []gin.HandlerFunc{loginHandler(rh), checkProfileHandler(), bizHandler(rh)}
+	return []gin.HandlerFunc{loginHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
 }
 
 func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
@@ -104,6 +105,31 @@ func checkProfileHandler() gin.HandlerFunc {
 			ctx := utils.GetDgContext(c)
 			dglogger.Warnf(ctx, "invalid profile, your profile is %s, current profile is %s", values[0], myProfile)
 			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFail[string]("your call incorrect profile"))
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if len(rh.AllowRoles) == 0 {
+			c.Next()
+			return
+		}
+
+		ctx := utils.GetDgContext(c)
+		if ctx.Roles == "" {
+			dglogger.Warnf(ctx, "has no roles")
+			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
+			return
+		}
+
+		roles := strings.Split(ctx.Roles, ",")
+		if !dgcoll.ContainsAny(roles, rh.AllowRoles) {
+			dglogger.Warnf(ctx, "has no allowed roles")
+			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
 			return
 		}
 
