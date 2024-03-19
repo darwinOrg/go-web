@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"github.com/darwinOrg/go-common/constants"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -10,26 +11,21 @@ var AllowOrigins = []string{
 }
 
 var AllowHeaders = []string{
-	"profile",
-	"trace-id",
-	"uid",
-	"op-id",
-	"run-as",
-	"roles",
-	"biz-types",
-	"group-id",
-	"platform",
-	"user_agent",
-	"lang",
-	"goid",
-	"pageNo",
-	"pageSize",
-	"token",
-	"s-token",
-	"remote-ip",
-	"company-id",
-	"product",
-	"department-ids",
+	constants.TraceId,
+	constants.UID,
+	constants.OpId,
+	constants.RunAs,
+	constants.Roles,
+	constants.BizTypes,
+	constants.GroupId,
+	constants.Platform,
+	constants.UserAgent,
+	constants.Lang,
+	constants.Token,
+	constants.ShareToken,
+	constants.CompanyId,
+	constants.Product,
+	constants.DepartmentIds,
 
 	"device-id",
 	"hardware",
