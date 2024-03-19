@@ -21,12 +21,12 @@ func GetLang(c *gin.Context) string {
 		return ""
 	}
 
-	lng := c.GetHeader(constants.Lang)
+	lng := GetHeader(c, constants.Lang)
 	if lng != "" {
 		return lng
 	}
 
-	lng = c.GetHeader("Accept-Language")
+	lng = GetHeader(c, "Accept-Language")
 	if lng != "" {
 		return lng
 	}
@@ -91,15 +91,15 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		UserId:        GetUserId(c),
 		OpId:          getInt64Value(c, constants.OpId),
 		RunAs:         getInt64Value(c, constants.RunAs),
-		Roles:         c.GetHeader(constants.Roles),
+		Roles:         GetHeader(c, constants.Roles),
 		BizTypes:      getIntValue(c, constants.BizTypes),
 		GroupId:       getInt64Value(c, constants.GroupId),
-		Platform:      c.GetHeader(constants.Platform),
-		UserAgent:     c.GetHeader(constants.UserAgent),
+		Platform:      GetHeader(c, constants.Platform),
+		UserAgent:     GetHeader(c, constants.UserAgent),
 		Lang:          GetLang(c),
 		Token:         GetToken(c),
 		ShareToken:    GetShareToken(c),
-		RemoteIp:      c.GetHeader(constants.RemoteIp),
+		RemoteIp:      GetHeader(c, constants.RemoteIp),
 		CompanyId:     getInt64Value(c, constants.CompanyId),
 		Product:       GetProduct(c),
 		DepartmentIds: GetDepartmentIds(c),
@@ -107,7 +107,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 }
 
 func GetTraceId(c *gin.Context) string {
-	traceId := c.GetHeader(constants.TraceId)
+	traceId := GetHeader(c, constants.TraceId)
 	if traceId == "" {
 		traceId = uuid.NewString()
 	}
@@ -121,7 +121,7 @@ func GetUserId(c *gin.Context) int64 {
 func GetToken(c *gin.Context) string {
 	token := c.Query(constants.Token)
 	if len(token) == 0 {
-		token = c.GetHeader(constants.Token)
+		token = GetHeader(c, constants.Token)
 	}
 	return token
 }
@@ -129,13 +129,13 @@ func GetToken(c *gin.Context) string {
 func GetShareToken(c *gin.Context) string {
 	token := c.Query(constants.ShareToken)
 	if len(token) == 0 {
-		token = c.GetHeader(constants.ShareToken)
+		token = GetHeader(c, constants.ShareToken)
 	}
 	return token
 }
 
 func GetProduct(c *gin.Context) int {
-	product := c.GetHeader(constants.Product)
+	product := GetHeader(c, constants.Product)
 	if len(product) == 0 {
 		product = c.Query(constants.Product)
 	}
@@ -146,8 +146,16 @@ func GetProduct(c *gin.Context) int {
 	return val
 }
 
+func GetHeader(c *gin.Context, key string) string {
+	values := c.Request.Header[key]
+	if len(values) > 0 {
+		return values[0]
+	}
+	return ""
+}
+
 func GetDepartmentIds(c *gin.Context) []int64 {
-	departmentIds := c.GetHeader(constants.DepartmentIds)
+	departmentIds := GetHeader(c, constants.DepartmentIds)
 	if len(departmentIds) > 0 {
 		return dgcoll.SplitToInts[int64](departmentIds, ",")
 	}
@@ -155,7 +163,7 @@ func GetDepartmentIds(c *gin.Context) []int64 {
 }
 
 func getInt64Value(c *gin.Context, header string) int64 {
-	h := c.GetHeader(header)
+	h := GetHeader(c, header)
 	if h == "" {
 		h = "0"
 	}
@@ -164,7 +172,7 @@ func getInt64Value(c *gin.Context, header string) int64 {
 }
 
 func getIntValue(c *gin.Context, header string) int {
-	h := c.GetHeader(header)
+	h := GetHeader(c, header)
 	if h == "" {
 		h = "0"
 	}
