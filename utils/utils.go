@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dglogger "github.com/darwinOrg/go-logger"
@@ -86,21 +87,22 @@ func GetDgContext(c *gin.Context) *dgctx.DgContext {
 
 func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 	return &dgctx.DgContext{
-		TraceId:    GetTraceId(c),
-		UserId:     GetUserId(c),
-		OpId:       getInt64Value(c, constants.OpId),
-		RunAs:      getInt64Value(c, constants.RunAs),
-		Roles:      c.GetHeader(constants.Roles),
-		BizTypes:   getIntValue(c, constants.BizTypes),
-		GroupId:    getInt64Value(c, constants.GroupId),
-		Platform:   c.GetHeader(constants.Platform),
-		UserAgent:  c.GetHeader(constants.UserAgent),
-		Lang:       GetLang(c),
-		Token:      GetToken(c),
-		ShareToken: GetShareToken(c),
-		RemoteIp:   c.GetHeader(constants.RemoteIp),
-		CompanyId:  getInt64Value(c, constants.CompanyId),
-		Product:    GetProduct(c),
+		TraceId:       GetTraceId(c),
+		UserId:        GetUserId(c),
+		OpId:          getInt64Value(c, constants.OpId),
+		RunAs:         getInt64Value(c, constants.RunAs),
+		Roles:         c.GetHeader(constants.Roles),
+		BizTypes:      getIntValue(c, constants.BizTypes),
+		GroupId:       getInt64Value(c, constants.GroupId),
+		Platform:      c.GetHeader(constants.Platform),
+		UserAgent:     c.GetHeader(constants.UserAgent),
+		Lang:          GetLang(c),
+		Token:         GetToken(c),
+		ShareToken:    GetShareToken(c),
+		RemoteIp:      c.GetHeader(constants.RemoteIp),
+		CompanyId:     getInt64Value(c, constants.CompanyId),
+		Product:       GetProduct(c),
+		DepartmentIds: GetDepartmentIds(c),
 	}
 }
 
@@ -142,6 +144,14 @@ func GetProduct(c *gin.Context) int {
 	}
 	val, _ := strconv.Atoi(product)
 	return val
+}
+
+func GetDepartmentIds(c *gin.Context) []int64 {
+	departmentIds := c.GetHeader(constants.DepartmentIds)
+	if len(departmentIds) > 0 {
+		return dgcoll.SplitToInts[int64](departmentIds, ",")
+	}
+	return []int64{}
 }
 
 func getInt64Value(c *gin.Context, header string) int64 {
