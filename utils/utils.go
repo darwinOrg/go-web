@@ -147,11 +147,7 @@ func GetProduct(c *gin.Context) int {
 }
 
 func GetHeader(c *gin.Context, key string) string {
-	values := c.Request.Header[key]
-	if len(values) > 0 {
-		return values[0]
-	}
-	return ""
+	return c.GetHeader(key)
 }
 
 func GetDepartmentIds(c *gin.Context) []int64 {
