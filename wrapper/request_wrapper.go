@@ -45,6 +45,8 @@ type RequestHolder[T any, V any] struct {
 	BizHandler      HandlerFunc[T, V]
 	mapRequestObj   bool
 	LogLevel        LogLevel
+	ApiDir          string
+	Remark          string
 }
 
 type MapRequest struct {
@@ -55,20 +57,24 @@ type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, reques
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
 	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
+	appendRequestApi(rh, http.MethodGet)
 }
 
 func Post[T any, V any](rh *RequestHolder[T, V]) {
 	rh.POST(rh.RelativePath, buildHandlerChain(rh)...)
+	appendRequestApi(rh, http.MethodPost)
 }
 
 func MapGet[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
 	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
+	appendRequestApi(rh, http.MethodGet)
 }
 
 func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
 	rh.POST(rh.RelativePath, buildHandlerChain(rh)...)
+	appendRequestApi(rh, http.MethodPost)
 }
 
 func buildHandlerChain[T any, V any](rh *RequestHolder[T, V]) []gin.HandlerFunc {
