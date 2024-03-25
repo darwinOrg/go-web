@@ -72,11 +72,11 @@ func TestExport(t *testing.T) {
 }
 
 type UserRequest struct {
-	Name     string    `binding:"required" errMsg:"姓名错误:不能为空"`
-	Age      int       `binding:"required,gt=0,lt=100"`
+	Name     string    `binding:"required" errMsg:"姓名错误:不能为空" remark:"名称"`
+	Age      int       `binding:"required,gt=0,lt=100" remark:"年龄"`
 	UserInfo *userInfo `binding:"required"`
 }
 
 type userInfo struct {
-	Sex int `binding:"required,gt=0,lt=5" errMsg:"性别错误"`
+	Sex int `binding:"required,gt=0,lt=5" errMsg:"性别错误" remark:"性别"`
 }
