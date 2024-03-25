@@ -66,7 +66,7 @@ func TestExport(t *testing.T) {
 		},
 	})
 
-	wrapper.ExportSwaggerFile(&wrapper.ExportSwaggerFileRequest{
+	wrapper.ExportSwaggerFile(&wrapper.ExportSwaggerRequest{
 		ServiceName: "test-service",
 		//Title:       "测试服务标题",
 		//Description: "测试服务描述",

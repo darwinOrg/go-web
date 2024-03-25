@@ -29,7 +29,7 @@ type requestApi struct {
 	responseObject any
 }
 
-type ExportSwaggerFileRequest struct {
+type ExportSwaggerRequest struct {
 	ServiceName string
 	Title       string
 	Description string
@@ -50,7 +50,7 @@ func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 	}
 }
 
-func ExportSwaggerFile(req *ExportSwaggerFileRequest) {
+func ExportSwaggerFile(req *ExportSwaggerRequest) {
 	if len(requestApis) == 0 {
 		panic("没有需要导出的接口定义")
 	}
