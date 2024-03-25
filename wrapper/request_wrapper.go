@@ -59,12 +59,12 @@ var (
 )
 
 type RequestApi struct {
-	method         string
-	basePath       string
-	relativePath   string
-	remark         string
-	requestObject  any
-	responseObject any
+	Method         string
+	BasePath       string
+	RelativePath   string
+	Remark         string
+	RequestObject  any
+	ResponseObject any
 }
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
@@ -281,12 +281,12 @@ func getTranslateErrMsg(err validator.FieldError, lng string) string {
 func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 	if !dgsys.IsQa() && !dgsys.IsProd() {
 		requestApis = append(requestApis, &RequestApi{
-			method:         method,
-			basePath:       rh.BasePath(),
-			relativePath:   rh.RelativePath,
-			remark:         rh.Remark,
-			requestObject:  new(T),
-			responseObject: new(V),
+			Method:         method,
+			BasePath:       rh.BasePath(),
+			RelativePath:   rh.RelativePath,
+			Remark:         rh.Remark,
+			RequestObject:  new(T),
+			ResponseObject: new(V),
 		})
 	}
 }
