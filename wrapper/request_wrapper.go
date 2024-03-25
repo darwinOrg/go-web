@@ -54,6 +54,19 @@ type MapRequest struct {
 
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
+var (
+	requestApis []*RequestApi
+)
+
+type RequestApi struct {
+	method         string
+	basePath       string
+	relativePath   string
+	remark         string
+	requestObject  any
+	responseObject any
+}
+
 func Get[T any, V any](rh *RequestHolder[T, V]) {
 	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
 	appendRequestApi(rh, http.MethodGet)
@@ -263,4 +276,21 @@ func findCustomErrMsgs(tType reflect.Type, tName string, tPath string, errMsgs m
 
 func getTranslateErrMsg(err validator.FieldError, lng string) string {
 	return ve.TranslateValidateError(validator.ValidationErrors{err}, lng)
+}
+
+func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
+	if !dgsys.IsQa() && !dgsys.IsProd() {
+		requestApis = append(requestApis, &RequestApi{
+			method:         method,
+			basePath:       rh.BasePath(),
+			relativePath:   rh.RelativePath,
+			remark:         rh.Remark,
+			requestObject:  new(T),
+			responseObject: new(V),
+		})
+	}
+}
+
+func GetRequestApis() []*RequestApi {
+	return requestApis
 }
