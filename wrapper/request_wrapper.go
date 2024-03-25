@@ -45,7 +45,6 @@ type RequestHolder[T any, V any] struct {
 	BizHandler      HandlerFunc[T, V]
 	mapRequestObj   bool
 	LogLevel        LogLevel
-	ApiDir          string
 	Remark          string
 }
 

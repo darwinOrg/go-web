@@ -42,6 +42,36 @@ func TestPost(t *testing.T) {
 	engine.Run(fmt.Sprintf(":%d", 8080))
 }
 
+func TestExport(t *testing.T) {
+	engine := wrapper.DefaultEngine()
+
+	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[types.Nil]]{
+		RouterGroup:  engine.Group("/test"),
+		RelativePath: "/get",
+		NonLogin:     true,
+		BizHandler: func(_ *gin.Context, ctx *dgctx.DgContext, request *wrapper.MapRequest) *result.Result[types.Nil] {
+			return result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+		},
+	})
+
+	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[string]]{
+		RouterGroup:  engine.Group("/test"),
+		RelativePath: "post",
+		NonLogin:     true,
+		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[string] {
+			return result.Success("Success")
+		},
+	})
+
+	wrapper.ExportSwaggerFile(&wrapper.ExportSwaggerFileRequest{
+		Title:       "测试服务标题",
+		Description: "测试服务描述",
+		ServiceName: "test-service",
+		OutDir:      "openapi/v1",
+		Version:     "v0.0.1",
+	})
+}
+
 type UserRequest struct {
 	Name     string    `binding:"required" errMsg:"姓名错误:不能为空"`
 	Age      int       `binding:"required,gt=0,lt=100"`

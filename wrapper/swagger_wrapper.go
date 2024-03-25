@@ -3,18 +3,18 @@ package wrapper
 import (
 	"encoding/json"
 	"fmt"
+	dgerr "github.com/darwinOrg/go-common/enums/error"
 	dgsys "github.com/darwinOrg/go-common/sys"
 	"github.com/go-openapi/spec"
 	"net/http"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 )
 
 const (
 	contentTypeJson = "application/json"
-	bodyKey         = "body"
-	responseOk      = 200
 )
 
 var (
@@ -25,14 +25,12 @@ type requestApi struct {
 	method         string
 	basePath       string
 	relativePath   string
-	apiDir         string
 	remark         string
 	requestObject  any
 	responseObject any
 }
 
-type GenerateSwaggerRequest struct {
-	Namespace   string
+type ExportSwaggerFileRequest struct {
 	Title       string
 	Description string
 	ServiceName string
@@ -46,7 +44,6 @@ func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 			method:         method,
 			basePath:       rh.BasePath(),
 			relativePath:   rh.RelativePath,
-			apiDir:         rh.ApiDir,
 			remark:         rh.Remark,
 			requestObject:  new(T),
 			responseObject: new(V),
@@ -54,9 +51,19 @@ func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 	}
 }
 
-func GenerateSwaggerFile(req *GenerateSwaggerRequest) {
+func ExportSwaggerFile(req *ExportSwaggerFileRequest) {
 	if len(requestApis) == 0 {
-		return
+		panic("没有需要导出的接口定义")
+	}
+	if req.Title == "" || req.ServiceName == "" {
+		panic(dgerr.ARGUMENT_NOT_VALID)
+	}
+
+	if req.Description == "" {
+		req.Description = req.Title
+	}
+	if req.OutDir == "" {
+		req.OutDir = "swagger"
 	}
 	if req.Version == "" {
 		req.Version = "v1.0.0"
@@ -68,8 +75,8 @@ func GenerateSwaggerFile(req *GenerateSwaggerRequest) {
 		SecurityDefinitions: spec.SecurityDefinitions{},
 		Info: &spec.Info{
 			InfoProps: spec.InfoProps{
-				Title:       fmt.Sprintf("%s%s", req.Namespace, req.Title),
-				Description: fmt.Sprintf("%s%s", req.Namespace, req.Description),
+				Title:       req.Title,
+				Description: req.Description,
 				Version:     req.Version,
 			},
 		},
@@ -115,7 +122,7 @@ func buildApiPaths() *spec.Paths {
 
 func buildGetParameters(api *requestApi) []spec.Parameter {
 	tpe := reflect.TypeOf(api.requestObject)
-	if tpe.Kind() == reflect.Pointer {
+	for tpe.Kind() == reflect.Pointer {
 		tpe = tpe.Elem()
 	}
 	cnt := tpe.NumField()
@@ -124,7 +131,6 @@ func buildGetParameters(api *requestApi) []spec.Parameter {
 	for i := 0; i < cnt; i++ {
 		field := tpe.Field(i)
 		p := *spec.QueryParam(extractNameFromField(field))
-		parameters = append(parameters, p)
 
 		switch field.Type.Kind() {
 		case reflect.String:
@@ -137,26 +143,30 @@ func buildGetParameters(api *requestApi) []spec.Parameter {
 			p.Type = "number"
 		case reflect.Slice, reflect.Array:
 			p.Type = "array"
+		case reflect.Map:
+			continue
 		default:
 			fmt.Printf("Unsupported field type: %s\n", field.Type.Kind())
 		}
 
 		p.Required = extractRequiredFlagFromField(field)
 		p.Description = extractDescriptionFromField(field)
+
+		parameters = append(parameters, p)
 	}
 
 	return parameters
 }
 
 func buildPostParameters(api *requestApi) []spec.Parameter {
-	bodySchema := createSchemaForType(reflect.TypeOf(api.requestObject))
-	bodyParam := *spec.BodyParam(bodyKey, bodySchema)
+	schema := createSchemaForType(reflect.TypeOf(api.requestObject))
+	bodyParam := *spec.BodyParam("body", schema)
 	bodyParam.Required = true
 	return []spec.Parameter{bodyParam}
 }
 
 func createSchemaForType(tpe reflect.Type) *spec.Schema {
-	if tpe.Kind() == reflect.Pointer {
+	for tpe.Kind() == reflect.Pointer {
 		tpe = tpe.Elem()
 	}
 
@@ -215,7 +225,7 @@ func buildResponses(api *requestApi) *spec.Responses {
 	return &spec.Responses{
 		ResponsesProps: spec.ResponsesProps{
 			StatusCodeResponses: map[int]spec.Response{
-				responseOk: {
+				http.StatusOK: {
 					ResponseProps: spec.ResponseProps{
 						Description: "成功",
 						Schema:      createSchemaForType(reflect.TypeOf(api.responseObject)),
@@ -232,7 +242,17 @@ func saveSwagger(swaggerProps spec.SwaggerProps, filename string) {
 		panic(err)
 	}
 
-	err = os.WriteFile(filename, swaggerJSON, 0644)
+	dirPath := filepath.Dir(filename)
+	if err = os.MkdirAll(dirPath, os.ModePerm); err != nil {
+		panic(err)
+	}
+
+	_, err = os.Create(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	err = os.WriteFile(filename, swaggerJSON, os.ModePerm)
 	if err != nil {
 		panic(err)
 	}
@@ -243,7 +263,11 @@ func extractNameFromField(field reflect.StructField) string {
 	if jsonTag != "" {
 		return jsonTag
 	} else {
-		return field.Name
+		if len(field.Name) == 1 {
+			return strings.ToLower(field.Name)
+		}
+
+		return strings.ToLower(field.Name[0:1]) + field.Name[1:]
 	}
 }
 
