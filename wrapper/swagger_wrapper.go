@@ -16,6 +16,12 @@ import (
 const (
 	contentTypeJson = "application/json"
 )
+const (
+	resultSchemaCode    = "code"
+	resultSchemaMessage = "message"
+	resultSchemaSuccess = "success"
+	resultSchemaData    = "data"
+)
 
 var (
 	requestApis []*requestApi
@@ -204,6 +210,16 @@ func createSchemaForType(tpe reflect.Type) *spec.Schema {
 
 		for i := 0; i < cnt; i++ {
 			field := tpe.Field(i)
+
+			if strings.Contains(tpe.String(), "result.Result") && field.Name == "Data" {
+				rt := reflect.New(tpe).Elem().Interface()
+				dataType := reflect.ValueOf(rt).Field(i).Type()
+				for dataType.Kind() == reflect.Pointer {
+					dataType = dataType.Elem()
+				}
+				field.Type = dataType
+			}
+
 			property := createSchemaForType(field.Type)
 			property.Title = extractNameFromField(field)
 			property.Description = extractDescriptionFromField(field)

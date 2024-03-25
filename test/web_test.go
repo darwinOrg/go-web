@@ -3,12 +3,11 @@ package test
 import (
 	"fmt"
 	dgctx "github.com/darwinOrg/go-common/context"
-	dgerr "github.com/darwinOrg/go-common/enums/error"
+	"github.com/darwinOrg/go-common/page"
 	"github.com/darwinOrg/go-common/result"
 	"github.com/darwinOrg/go-monitor"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
-	"go/types"
 	"testing"
 )
 
@@ -16,15 +15,15 @@ func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
 
 	engine := wrapper.DefaultEngine()
-	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[types.Nil]]{
+	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*result.Void]]{
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "/get",
 		NonLogin:     true,
-		BizHandler: func(_ *gin.Context, ctx *dgctx.DgContext, request *wrapper.MapRequest) *result.Result[types.Nil] {
-			return result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+		BizHandler: func(_ *gin.Context, ctx *dgctx.DgContext, request *wrapper.MapRequest) *result.Result[*result.Void] {
+			return result.SimpleSuccess()
 		},
 	})
-	engine.Run(fmt.Sprintf(":%d", 8080))
+	_ = engine.Run(fmt.Sprintf(":%d", 8080))
 }
 
 func TestPost(t *testing.T) {
@@ -39,27 +38,27 @@ func TestPost(t *testing.T) {
 			return result.Success("Success")
 		},
 	})
-	engine.Run(fmt.Sprintf(":%d", 8080))
+	_ = engine.Run(fmt.Sprintf(":%d", 8080))
 }
 
 func TestExport(t *testing.T) {
 	engine := wrapper.DefaultEngine()
 
-	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[types.Nil]]{
+	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*result.Void]]{
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "/get",
 		NonLogin:     true,
-		BizHandler: func(_ *gin.Context, ctx *dgctx.DgContext, request *wrapper.MapRequest) *result.Result[types.Nil] {
-			return result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+		BizHandler: func(_ *gin.Context, ctx *dgctx.DgContext, request *wrapper.MapRequest) *result.Result[*result.Void] {
+			return result.SimpleSuccess()
 		},
 	})
 
-	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[string]]{
+	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[*page.PageList[*UserRequest]]]{
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "post",
 		NonLogin:     true,
-		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[string] {
-			return result.Success("Success")
+		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*page.PageList[*UserRequest]] {
+			return result.Success[*page.PageList[*UserRequest]](nil)
 		},
 	})
 
