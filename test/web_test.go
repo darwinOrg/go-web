@@ -16,6 +16,7 @@ func TestGet(t *testing.T) {
 
 	engine := wrapper.DefaultEngine()
 	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*result.Void]]{
+		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "/get",
 		NonLogin:     true,
@@ -31,6 +32,7 @@ func TestPost(t *testing.T) {
 
 	engine := wrapper.DefaultEngine()
 	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[string]]{
+		Remark:       "测试post接口",
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "post",
 		NonLogin:     true,
@@ -45,6 +47,7 @@ func TestExport(t *testing.T) {
 	engine := wrapper.DefaultEngine()
 
 	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*result.Void]]{
+		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "/get",
 		NonLogin:     true,
@@ -54,6 +57,7 @@ func TestExport(t *testing.T) {
 	})
 
 	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[*page.PageList[*UserRequest]]]{
+		Remark:       "测试post接口",
 		RouterGroup:  engine.Group("/test"),
 		RelativePath: "post",
 		NonLogin:     true,

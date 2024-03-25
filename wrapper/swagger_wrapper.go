@@ -95,6 +95,7 @@ func buildApiPaths() *spec.Paths {
 	for _, api := range requestApis {
 		url := fmt.Sprintf("%s/%s", api.basePath, api.relativePath)
 		url = strings.ReplaceAll(url, "//", "/")
+
 		var parameters []spec.Parameter
 		if api.method == http.MethodGet {
 			parameters = buildGetParameters(api)
@@ -102,18 +103,26 @@ func buildApiPaths() *spec.Paths {
 			parameters = buildPostParameters(api)
 		}
 
-		paths[url] = spec.PathItem{
-			PathItemProps: spec.PathItemProps{
-				Post: &spec.Operation{
-					OperationProps: spec.OperationProps{
-						Summary:    api.remark,
-						Consumes:   []string{contentTypeJson},
-						Produces:   []string{contentTypeJson},
-						Parameters: parameters,
-						Responses:  buildResponses(api),
-					},
-				},
+		operation := &spec.Operation{
+			OperationProps: spec.OperationProps{
+				Summary:     api.remark,
+				Description: api.remark,
+				Consumes:    []string{contentTypeJson},
+				Produces:    []string{contentTypeJson},
+				Parameters:  parameters,
+				Responses:   buildResponses(api),
 			},
+		}
+
+		itemProps := spec.PathItemProps{}
+		if api.method == http.MethodGet {
+			itemProps.Get = operation
+		} else {
+			itemProps.Post = operation
+		}
+
+		paths[url] = spec.PathItem{
+			PathItemProps: itemProps,
 		}
 	}
 
