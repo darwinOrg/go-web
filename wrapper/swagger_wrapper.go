@@ -15,12 +15,6 @@ import (
 const (
 	contentTypeJson = "application/json"
 )
-const (
-	resultSchemaCode    = "code"
-	resultSchemaMessage = "message"
-	resultSchemaSuccess = "success"
-	resultSchemaData    = "data"
-)
 
 var (
 	requestApis []*requestApi
