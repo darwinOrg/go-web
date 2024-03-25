@@ -3,7 +3,6 @@ package wrapper
 import (
 	"encoding/json"
 	"fmt"
-	dgerr "github.com/darwinOrg/go-common/enums/error"
 	dgsys "github.com/darwinOrg/go-common/sys"
 	"github.com/go-openapi/spec"
 	"net/http"
@@ -37,9 +36,9 @@ type requestApi struct {
 }
 
 type ExportSwaggerFileRequest struct {
+	ServiceName string
 	Title       string
 	Description string
-	ServiceName string
 	OutDir      string
 	Version     string
 }
@@ -61,15 +60,18 @@ func ExportSwaggerFile(req *ExportSwaggerFileRequest) {
 	if len(requestApis) == 0 {
 		panic("没有需要导出的接口定义")
 	}
-	if req.Title == "" || req.ServiceName == "" {
-		panic(dgerr.ARGUMENT_NOT_VALID)
+	if req.ServiceName == "" {
+		panic("服务名不能为空")
 	}
 
+	if req.Title == "" {
+		req.Title = "接口文档"
+	}
 	if req.Description == "" {
-		req.Description = req.Title
+		req.Description = "接口描述"
 	}
 	if req.OutDir == "" {
-		req.OutDir = "swagger"
+		req.OutDir = "openapi/v1"
 	}
 	if req.Version == "" {
 		req.Version = "v1.0.0"

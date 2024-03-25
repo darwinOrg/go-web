@@ -63,11 +63,11 @@ func TestExport(t *testing.T) {
 	})
 
 	wrapper.ExportSwaggerFile(&wrapper.ExportSwaggerFileRequest{
-		Title:       "测试服务标题",
-		Description: "测试服务描述",
 		ServiceName: "test-service",
-		OutDir:      "openapi/v1",
-		Version:     "v0.0.1",
+		//Title:       "测试服务标题",
+		//Description: "测试服务描述",
+		//OutDir:      "openapi/v1",
+		//Version:     "v0.0.1",
 	})
 }
 
