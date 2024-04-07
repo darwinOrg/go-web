@@ -94,7 +94,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		Roles:         GetHeader(c, constants.Roles),
 		BizTypes:      getIntValue(c, constants.BizTypes),
 		GroupId:       getInt64Value(c, constants.GroupId),
-		Platform:      GetHeader(c, constants.Platform),
+		Platform:      GetPlatform(c),
 		UserAgent:     GetHeader(c, constants.UserAgent),
 		Lang:          GetLang(c),
 		Token:         GetToken(c),
