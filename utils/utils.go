@@ -119,17 +119,25 @@ func GetUserId(c *gin.Context) int64 {
 }
 
 func GetToken(c *gin.Context) string {
-	token := c.Query(constants.Token)
+	token := GetHeader(c, constants.Token)
 	if len(token) == 0 {
-		token = GetHeader(c, constants.Token)
+		token = c.Query(constants.Token)
 	}
 	return token
 }
 
+func GetPlatform(c *gin.Context) string {
+	platform := GetHeader(c, constants.Platform)
+	if len(platform) == 0 {
+		platform = c.Query(constants.Platform)
+	}
+	return platform
+}
+
 func GetShareToken(c *gin.Context) string {
-	token := c.Query(constants.ShareToken)
+	token := GetHeader(c, constants.ShareToken)
 	if len(token) == 0 {
-		token = GetHeader(c, constants.ShareToken)
+		token = c.Query(constants.ShareToken)
 	}
 	return token
 }
