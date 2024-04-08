@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
@@ -17,7 +16,8 @@ func Recover() gin.HandlerFunc {
 }
 
 func myRecover(c *gin.Context, err any) {
-	dglogger.Errorf(&dgctx.DgContext{TraceId: utils.GetTraceId(c)}, "request error:%v", err)
+	ctx := utils.GetDgContext(c)
+	dglogger.Errorf(ctx, "request error:%v", err)
 
 	// 封装通用json结果返回
 	c.JSON(http.StatusOK, errorToResult(err))
