@@ -36,6 +36,11 @@ const (
 
 var myProfile = dgsys.GetProfile()
 
+var (
+	EnableRolesCheck    = true
+	EnableProductsCheck = true
+)
+
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
 	RelativePath    string
@@ -133,7 +138,7 @@ func checkProfileHandler() gin.HandlerFunc {
 
 func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if len(rh.AllowRoles) == 0 {
+		if !EnableRolesCheck || len(rh.AllowRoles) == 0 {
 			c.Next()
 			return
 		}
@@ -158,7 +163,7 @@ func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if len(rh.AllowProducts) == 0 {
+		if !EnableProductsCheck || len(rh.AllowProducts) == 0 {
 			c.Next()
 			return
 		}
