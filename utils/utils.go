@@ -102,6 +102,7 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		RemoteIp:      GetHeader(c, constants.RemoteIp),
 		CompanyId:     getInt64Value(c, constants.CompanyId),
 		Product:       GetProduct(c),
+		Products:      GetProducts(c),
 		DepartmentIds: GetDepartmentIds(c),
 	}
 }
@@ -166,6 +167,14 @@ func GetHeader(c *gin.Context, key string) string {
 	}
 
 	return ""
+}
+
+func GetProducts(c *gin.Context) []int {
+	products := GetHeader(c, constants.Products)
+	if len(products) > 0 {
+		return dgcoll.SplitToInts[int](products, ",")
+	}
+	return []int{}
 }
 
 func GetDepartmentIds(c *gin.Context) []int64 {
