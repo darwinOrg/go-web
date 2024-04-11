@@ -41,6 +41,7 @@ type RequestHolder[T any, V any] struct {
 	RelativePath    string
 	NonLogin        bool
 	AllowRoles      []string
+	AllowProducts   []int
 	NeedPermissions []string
 	BizHandler      HandlerFunc[T, V]
 	mapRequestObj   bool
@@ -90,7 +91,7 @@ func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 }
 
 func buildHandlerChain[T any, V any](rh *RequestHolder[T, V]) []gin.HandlerFunc {
-	return []gin.HandlerFunc{loginHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
+	return []gin.HandlerFunc{loginHandler(rh), checkProductHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
 }
 
 func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
@@ -155,6 +156,30 @@ func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
+func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if len(rh.AllowProducts) == 0 {
+			c.Next()
+			return
+		}
+
+		ctx := utils.GetDgContext(c)
+		if len(ctx.Products) == 0 {
+			dglogger.Warnf(ctx, "has no products")
+			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
+			return
+		}
+
+		if !dgcoll.ContainsAny(ctx.Products, rh.AllowProducts) {
+			dglogger.Warnf(ctx, "has no allowed products")
+			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
+			return
+		}
+
+		c.Next()
+	}
+}
+
 func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
@@ -204,7 +229,7 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 				}
 
 				if rt == nil {
-					rt = result.FailByError[types.Nil](dgerr.ARGUMENT_NOT_VALID)
+					rt = result.FailByError[*result.Void](dgerr.ARGUMENT_NOT_VALID)
 				}
 
 			} else {
