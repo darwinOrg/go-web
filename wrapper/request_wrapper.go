@@ -180,6 +180,7 @@ func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc 
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
 			return
 		}
+		ctx.Product = rh.AllowProducts[0]
 
 		c.Next()
 	}
