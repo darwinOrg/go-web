@@ -214,8 +214,7 @@ func appendUidForUrlValue(ctx *dgctx.DgContext, tpe reflect.Type, elem reflect.V
 		elem = elem.Elem()
 	}
 
-	switch tpe.Kind() {
-	case reflect.Struct:
+	if tpe.Kind() == reflect.Struct {
 		cnt := tpe.NumField()
 
 		for i := 0; i < cnt; i++ {
