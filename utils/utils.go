@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -201,4 +202,50 @@ func getIntValue(c *gin.Context, header string) int {
 	}
 	val, _ := strconv.Atoi(h)
 	return val
+}
+
+func AppendUidForUrlValue(ctx *dgctx.DgContext, obj any) {
+	appendUidForUrlValue(ctx, reflect.TypeOf(obj), reflect.ValueOf(obj))
+}
+
+func appendUidForUrlValue(ctx *dgctx.DgContext, tpe reflect.Type, elem reflect.Value) {
+	for tpe.Kind() == reflect.Pointer {
+		tpe = tpe.Elem()
+		elem = elem.Elem()
+	}
+
+	switch tpe.Kind() {
+	case reflect.Struct:
+		cnt := tpe.NumField()
+
+		for i := 0; i < cnt; i++ {
+			field := tpe.Field(i)
+			fieldType := field.Type
+			fieldValue := elem.Field(i)
+			for fieldType.Kind() == reflect.Pointer {
+				fieldType = fieldType.Elem()
+				fieldValue = fieldValue.Elem()
+			}
+
+			if field.Tag.Get("appendUid") == "true" {
+				if fieldType.Kind() == reflect.String && fieldValue.IsValid() {
+					fieldString := fieldValue.String()
+					if fieldString != "" {
+						if strings.Contains(fieldString, constants.UID+"=") {
+							continue
+						}
+						if strings.Contains(fieldString, "?") {
+							fieldString += "&"
+						} else {
+							fieldString += "?"
+						}
+						fieldString += constants.UID + "=" + strconv.FormatInt(ctx.UserId, 10)
+						fieldValue.SetString(fieldString)
+					}
+				}
+			} else if fieldType.Kind() == reflect.Struct {
+				appendUidForUrlValue(ctx, fieldType, fieldValue)
+			}
+		}
+	}
 }
