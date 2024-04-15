@@ -173,7 +173,7 @@ func GetHeader(c *gin.Context, key string) string {
 func GetProducts(c *gin.Context) []int {
 	products := GetHeader(c, constants.Products)
 	if len(products) > 0 {
-		return dgcoll.SplitToInts[int](products, ",")
+		return dgcoll.SplitToIntsByComma[int](products)
 	}
 	return []int{}
 }
@@ -181,7 +181,7 @@ func GetProducts(c *gin.Context) []int {
 func GetDepartmentIds(c *gin.Context) []int64 {
 	departmentIds := GetHeader(c, constants.DepartmentIds)
 	if len(departmentIds) > 0 {
-		return dgcoll.SplitToInts[int64](departmentIds, ",")
+		return dgcoll.SplitToIntsByComma[int64](departmentIds)
 	}
 	return []int64{}
 }
