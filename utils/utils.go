@@ -213,6 +213,10 @@ func getIntValue(c *gin.Context, header string) int {
 }
 
 func AppendUidAndTicketForUrlValue(ctx *dgctx.DgContext, obj any) {
+	if webSecretKey == "" {
+		return
+	}
+
 	appendUidForUrlValue(ctx, reflect.TypeOf(obj), reflect.ValueOf(obj))
 }
 
