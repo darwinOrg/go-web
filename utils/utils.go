@@ -3,9 +3,11 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
+	"github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -16,6 +18,12 @@ import (
 )
 
 const DgContextKey = "DgContext"
+
+var globalSecretKey string
+
+func SetGlobalSecretKey(key string) {
+	globalSecretKey = key
+}
 
 func GetLang(c *gin.Context) string {
 	if c == nil || c.Request == nil {
@@ -204,7 +212,7 @@ func getIntValue(c *gin.Context, header string) int {
 	return val
 }
 
-func AppendUidForUrlValue(ctx *dgctx.DgContext, obj any) {
+func AppendUidAndTicketForUrlValue(ctx *dgctx.DgContext, obj any) {
 	appendUidForUrlValue(ctx, reflect.TypeOf(obj), reflect.ValueOf(obj))
 }
 
@@ -238,7 +246,9 @@ func appendUidForUrlValue(ctx *dgctx.DgContext, tpe reflect.Type, elem reflect.V
 						} else {
 							fieldString += "?"
 						}
-						fieldString += constants.UID + "=" + strconv.FormatInt(ctx.UserId, 10)
+						fieldString += fmt.Sprintf("%s=%s&%s=%s",
+							constants.UID, strconv.FormatInt(ctx.UserId, 10),
+							constants.Ticket, utils.Sha1Hex(globalSecretKey, fieldString))
 						fieldValue.SetString(fieldString)
 					}
 				}

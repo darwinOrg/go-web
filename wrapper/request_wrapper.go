@@ -244,7 +244,7 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		}
 		printBizHandlerLog(c, ctx, rp, rt, start, rh.LogLevel)
 		if !c.Writer.Written() {
-			utils.AppendUidForUrlValue(ctx, rt)
+			utils.AppendUidAndTicketForUrlValue(ctx, rt)
 			c.JSON(http.StatusOK, rt)
 		}
 		c.Next()
