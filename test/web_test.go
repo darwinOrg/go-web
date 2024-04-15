@@ -13,7 +13,7 @@ import (
 
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
-	utils.SetGlobalSecretKey("4bb82aab07f27623398141f05f7f87yu")
+	utils.SetWebSecretKey("4bb82aab07f27623398141f05f7f87yu")
 
 	engine := wrapper.DefaultEngine()
 	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*UserResponse]]{

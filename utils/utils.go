@@ -19,10 +19,10 @@ import (
 
 const DgContextKey = "DgContext"
 
-var globalSecretKey string
+var webSecretKey string
 
-func SetGlobalSecretKey(key string) {
-	globalSecretKey = key
+func SetWebSecretKey(key string) {
+	webSecretKey = key
 }
 
 func GetLang(c *gin.Context) string {
@@ -248,7 +248,7 @@ func appendUidForUrlValue(ctx *dgctx.DgContext, tpe reflect.Type, elem reflect.V
 						}
 						fieldString += fmt.Sprintf("%s=%s&%s=%s",
 							constants.UID, strconv.FormatInt(ctx.UserId, 10),
-							constants.Ticket, utils.Sha1Hex(globalSecretKey, fieldString))
+							constants.Ticket, utils.Sha1Hex(webSecretKey, fieldString))
 						fieldValue.SetString(fieldString)
 					}
 				}
