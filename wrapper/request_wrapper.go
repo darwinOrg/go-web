@@ -159,6 +159,7 @@ func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		}
 
 		roles := strings.Split(ctx.Roles, ",")
+		dgcoll.Intersection(roles, rh.AllowRoles)
 		if !dgcoll.ContainsAny(roles, rh.AllowRoles) {
 			dglogger.Warnf(ctx, "has no allowed roles")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
@@ -183,12 +184,13 @@ func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc 
 			return
 		}
 
-		if !dgcoll.ContainsAny(ctx.Products, rh.AllowProducts) {
+		intersectionProducts := dgcoll.Intersection(ctx.Products, rh.AllowProducts)
+		if len(intersectionProducts) == 0 {
 			dglogger.Warnf(ctx, "has no allowed products")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
 			return
 		}
-		ctx.Product = rh.AllowProducts[0]
+		ctx.Product = intersectionProducts[0]
 
 		c.Next()
 	}

@@ -5,7 +5,6 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	"github.com/darwinOrg/go-monitor"
-	"github.com/darwinOrg/go-web/utils"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
 	"testing"
@@ -13,7 +12,6 @@ import (
 
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
-	utils.SetWebSecretKey("4bb82aab07f27623398141f05f7f87yu")
 
 	engine := wrapper.DefaultEngine()
 	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*UserResponse]]{
