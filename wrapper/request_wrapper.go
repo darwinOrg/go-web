@@ -22,7 +22,6 @@ import (
 )
 
 type LogLevel int
-type ReturnResultPostProcessor func(ctx *dgctx.DgContext, rt any)
 
 func (ll LogLevel) Value() int {
 	return int(ll)
@@ -41,6 +40,8 @@ var (
 	EnableRolesCheck    = true
 	EnableProductsCheck = true
 )
+
+type ReturnResultPostProcessor func(ctx *dgctx.DgContext, rt any)
 
 var returnResultPostProcessors []ReturnResultPostProcessor
 
