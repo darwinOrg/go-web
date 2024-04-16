@@ -22,6 +22,7 @@ import (
 )
 
 type LogLevel int
+type ReturnResultPostProcessor func(ctx *dgctx.DgContext, rt any)
 
 func (ll LogLevel) Value() int {
 	return int(ll)
@@ -41,6 +42,25 @@ var (
 	EnableProductsCheck = true
 )
 
+var returnResultPostProcessors []ReturnResultPostProcessor
+
+func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
+	returnResultPostProcessors = append(returnResultPostProcessors, processor)
+}
+
+var (
+	requestApis []*RequestApi
+)
+
+type RequestApi struct {
+	Method         string
+	BasePath       string
+	RelativePath   string
+	Remark         string
+	RequestObject  any
+	ResponseObject any
+}
+
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
 	RelativePath    string
@@ -59,19 +79,6 @@ type MapRequest struct {
 }
 
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
-
-var (
-	requestApis []*RequestApi
-)
-
-type RequestApi struct {
-	Method         string
-	BasePath       string
-	RelativePath   string
-	Remark         string
-	RequestObject  any
-	ResponseObject any
-}
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
 	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
@@ -242,11 +249,19 @@ func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 				rt = rh.BizHandler(c, ctx, req)
 			}
 		}
+
+		if len(returnResultPostProcessors) > 0 {
+			for _, returnResultPostProcessor := range returnResultPostProcessors {
+				returnResultPostProcessor(ctx, rt)
+			}
+		}
+
 		printBizHandlerLog(c, ctx, rp, rt, start, rh.LogLevel)
+
 		if !c.Writer.Written() {
-			utils.AppendUidAndTicketForUrlValue(ctx, rt)
 			c.JSON(http.StatusOK, rt)
 		}
+
 		c.Next()
 	}
 }

@@ -3,27 +3,18 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
-	"github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
-	"reflect"
 	"strconv"
 	"strings"
 )
 
 const DgContextKey = "DgContext"
-
-var webSecretKey string
-
-func SetWebSecretKey(key string) {
-	webSecretKey = key
-}
 
 func GetLang(c *gin.Context) string {
 	if c == nil || c.Request == nil {
@@ -210,55 +201,4 @@ func getIntValue(c *gin.Context, header string) int {
 	}
 	val, _ := strconv.Atoi(h)
 	return val
-}
-
-func AppendUidAndTicketForUrlValue(ctx *dgctx.DgContext, obj any) {
-	if webSecretKey == "" {
-		return
-	}
-
-	appendUidForUrlValue(ctx, reflect.TypeOf(obj), reflect.ValueOf(obj))
-}
-
-func appendUidForUrlValue(ctx *dgctx.DgContext, tpe reflect.Type, elem reflect.Value) {
-	for tpe.Kind() == reflect.Pointer {
-		tpe = tpe.Elem()
-		elem = elem.Elem()
-	}
-
-	if tpe.Kind() == reflect.Struct {
-		cnt := tpe.NumField()
-
-		for i := 0; i < cnt; i++ {
-			field := tpe.Field(i)
-			fieldType := field.Type
-			fieldValue := elem.Field(i)
-			for fieldType.Kind() == reflect.Pointer {
-				fieldType = fieldType.Elem()
-				fieldValue = fieldValue.Elem()
-			}
-
-			if field.Tag.Get("appendUid") == "true" {
-				if fieldType.Kind() == reflect.String && fieldValue.IsValid() {
-					fieldString := fieldValue.String()
-					if fieldString != "" {
-						if strings.Contains(fieldString, constants.UID+"=") {
-							continue
-						}
-						if strings.Contains(fieldString, "?") {
-							fieldString += "&"
-						} else {
-							fieldString += "?"
-						}
-						fieldString += fmt.Sprintf("%s=%s&%s=%s",
-							constants.UID, strconv.FormatInt(ctx.UserId, 10),
-							constants.Ticket, utils.Sha1Hex(webSecretKey, fieldString))
-						fieldValue.SetString(fieldString)
-					}
-				}
-			} else if fieldType.Kind() == reflect.Struct {
-				appendUidForUrlValue(ctx, fieldType, fieldValue)
-			}
-		}
-	}
 }
