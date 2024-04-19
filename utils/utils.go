@@ -109,10 +109,16 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 
 func GetTraceId(c *gin.Context) string {
 	traceId := GetHeader(c, constants.TraceId)
-	if traceId == "" {
-		traceId = uuid.NewString()
+	if traceId != "" {
+		return traceId
 	}
-	return traceId
+
+	traceId = c.Query(constants.TraceId)
+	if traceId != "" {
+		return traceId
+	}
+
+	return uuid.NewString()
 }
 
 func GetUserId(c *gin.Context) int64 {
