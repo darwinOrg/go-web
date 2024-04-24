@@ -83,28 +83,28 @@ type MapRequest struct {
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
-	rh.GET(rh.RelativePath, buildHandlersChain(rh)...)
+	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodGet)
 }
 
 func Post[T any, V any](rh *RequestHolder[T, V]) {
-	rh.POST(rh.RelativePath, buildHandlersChain(rh)...)
+	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodPost)
 }
 
 func MapGet[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
-	rh.GET(rh.RelativePath, buildHandlersChain(rh)...)
+	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodGet)
 }
 
 func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
-	rh.POST(rh.RelativePath, buildHandlersChain(rh)...)
+	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodPost)
 }
 
-func buildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
+func BuildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
 	handlersChain := []gin.HandlerFunc{loginHandler(rh), checkProductHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
 
 	if len(rh.PreHandlersChain) > 0 {
