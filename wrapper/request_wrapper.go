@@ -64,15 +64,16 @@ type RequestApi struct {
 
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
-	RelativePath    string
-	NonLogin        bool
-	AllowRoles      []string
-	AllowProducts   []int
-	NeedPermissions []string
-	BizHandler      HandlerFunc[T, V]
-	mapRequestObj   bool
-	LogLevel        LogLevel
-	Remark          string
+	RelativePath     string
+	PreHandlersChain gin.HandlersChain
+	NonLogin         bool
+	AllowRoles       []string
+	AllowProducts    []int
+	NeedPermissions  []string
+	BizHandler       HandlerFunc[T, V]
+	mapRequestObj    bool
+	LogLevel         LogLevel
+	Remark           string
 }
 
 type MapRequest struct {
@@ -82,29 +83,35 @@ type MapRequest struct {
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
-	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
+	rh.GET(rh.RelativePath, buildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodGet)
 }
 
 func Post[T any, V any](rh *RequestHolder[T, V]) {
-	rh.POST(rh.RelativePath, buildHandlerChain(rh)...)
+	rh.POST(rh.RelativePath, buildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodPost)
 }
 
 func MapGet[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
-	rh.GET(rh.RelativePath, buildHandlerChain(rh)...)
+	rh.GET(rh.RelativePath, buildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodGet)
 }
 
 func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
-	rh.POST(rh.RelativePath, buildHandlerChain(rh)...)
+	rh.POST(rh.RelativePath, buildHandlersChain(rh)...)
 	appendRequestApi(rh, http.MethodPost)
 }
 
-func buildHandlerChain[T any, V any](rh *RequestHolder[T, V]) []gin.HandlerFunc {
-	return []gin.HandlerFunc{loginHandler(rh), checkProductHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
+func buildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
+	handlersChain := []gin.HandlerFunc{loginHandler(rh), checkProductHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
+
+	if len(rh.PreHandlersChain) > 0 {
+		return dgcoll.MergeToList(rh.PreHandlersChain, handlersChain)
+	}
+
+	return handlersChain
 }
 
 func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
