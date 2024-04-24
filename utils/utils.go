@@ -7,11 +7,9 @@ import (
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
 	dglogger "github.com/darwinOrg/go-logger"
-	"github.com/darwinOrg/go-web/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
-	"net/http"
 	"strconv"
 	"strings"
 )
@@ -209,25 +207,4 @@ func getIntValue(c *gin.Context, header string) int {
 	}
 	val, _ := strconv.Atoi(h)
 	return val
-}
-
-func CorrectHeaderKey(c *gin.Context) http.Header {
-	newHeader := make(map[string][]string)
-
-	for k, v := range c.Request.Header {
-		var exists bool
-		for _, ah := range middleware.AllowHeaders {
-			if strings.EqualFold(k, ah) {
-				exists = true
-				newHeader[ah] = v
-				break
-			}
-		}
-
-		if !exists {
-			newHeader[k] = v
-		}
-	}
-
-	return newHeader
 }
