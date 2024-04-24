@@ -26,7 +26,7 @@ func TestGet(t *testing.T) {
 			return result.Success(resp)
 		},
 	})
-	_ = engine.Run(fmt.Sprintf(":%d", 8080))
+	wrapper.GracefulRun(engine, fmt.Sprintf(":%d", 8080))
 }
 
 func TestPost(t *testing.T) {
@@ -45,7 +45,7 @@ func TestPost(t *testing.T) {
 			return result.Success(resp)
 		},
 	})
-	_ = engine.Run(fmt.Sprintf(":%d", 8080))
+	wrapper.GracefulRun(engine, fmt.Sprintf(":%d", 8080))
 }
 
 type UserRequest struct {
