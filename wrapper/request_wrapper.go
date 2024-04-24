@@ -84,28 +84,28 @@ type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, reques
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
 	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
-	appendRequestApi(rh, http.MethodGet)
+	AppendRequestApi(rh, http.MethodGet)
 }
 
 func Post[T any, V any](rh *RequestHolder[T, V]) {
 	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
-	appendRequestApi(rh, http.MethodPost)
+	AppendRequestApi(rh, http.MethodPost)
 }
 
 func MapGet[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
 	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
-	appendRequestApi(rh, http.MethodGet)
+	AppendRequestApi(rh, http.MethodGet)
 }
 
 func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
 	rh.mapRequestObj = true
 	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
-	appendRequestApi(rh, http.MethodPost)
+	AppendRequestApi(rh, http.MethodPost)
 }
 
 func BuildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
-	handlersChain := []gin.HandlerFunc{loginHandler(rh), checkProductHandler(rh), checkRoleHandler(rh), checkProfileHandler(), bizHandler(rh)}
+	handlersChain := []gin.HandlerFunc{LoginHandler(rh), CheckProductHandler(rh), CheckRolesHandler(rh), CheckProfileHandler(), BizHandler(rh)}
 
 	if len(rh.PreHandlersChain) > 0 {
 		return dgcoll.MergeToList(rh.PreHandlersChain, handlersChain)
@@ -114,7 +114,7 @@ func BuildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain
 	return handlersChain
 }
 
-func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+func LoginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if rh.NonLogin {
 			c.Next()
@@ -132,7 +132,7 @@ func loginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
-func checkProfileHandler() gin.HandlerFunc {
+func CheckProfileHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		values := c.Request.Header[constants.Profile]
 		if len(values) == 0 || len(values[0]) == 0 {
@@ -151,7 +151,7 @@ func checkProfileHandler() gin.HandlerFunc {
 	}
 }
 
-func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+func CheckRolesHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !EnableRolesCheck || len(rh.AllowRoles) == 0 {
 			c.Next()
@@ -177,7 +177,7 @@ func checkRoleHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
-func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+func CheckProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if !EnableProductsCheck || len(rh.AllowProducts) == 0 {
 			c.Next()
@@ -203,7 +203,7 @@ func checkProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc 
 	}
 }
 
-func bizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
+func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		if rh.LogLevel.Value() == 0 {
@@ -335,7 +335,7 @@ func getTranslateErrMsg(err validator.FieldError, lng string) string {
 	return ve.TranslateValidateError(validator.ValidationErrors{err}, lng)
 }
 
-func appendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
+func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 	if !dgsys.IsQa() && !dgsys.IsProd() {
 		requestApis = append(requestApis, &RequestApi{
 			Method:         method,
