@@ -7,7 +7,6 @@ import (
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	"go/types"
 	"net/http"
 )
 
@@ -17,7 +16,7 @@ func Recover() gin.HandlerFunc {
 
 func myRecover(c *gin.Context, err any) {
 	ctx := utils.GetDgContext(c)
-	dglogger.Errorf(ctx, "request error:%v", err)
+	dglogger.Errorf(ctx, "panic error: %v", err)
 
 	// 封装通用json结果返回
 	c.JSON(http.StatusOK, errorToResult(err))
@@ -33,11 +32,11 @@ func errorToResult(r any) any {
 		return result.FailByError[*dgerr.DgError](r.(*dgerr.DgError))
 	case error:
 		if dgsys.IsProd() {
-			return result.FailByError[types.Nil](dgerr.SYSTEM_ERROR)
+			return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
 		} else {
 			return result.SimpleFail[string](r.(error).Error())
 		}
 	default:
-		return result.FailByError[types.Nil](dgerr.SYSTEM_ERROR)
+		return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
 	}
 }
