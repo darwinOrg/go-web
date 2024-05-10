@@ -65,6 +65,7 @@ type RequestApi struct {
 
 type RequestHolder[T any, V any] struct {
 	*gin.RouterGroup
+	Remark           string
 	RelativePath     string
 	PreHandlersChain gin.HandlersChain
 	NonLogin         bool
@@ -72,9 +73,9 @@ type RequestHolder[T any, V any] struct {
 	AllowProducts    []int
 	NeedPermissions  []string
 	BizHandler       HandlerFunc[T, V]
-	mapRequestObj    bool
 	LogLevel         LogLevel
-	Remark           string
+	NotLogSQL        bool
+	mapRequestObj    bool
 }
 
 type MapRequest struct {
@@ -212,6 +213,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		}
 
 		ctx := utils.GetDgContext(c)
+		ctx.NotLogSQL = rh.NotLogSQL
 		rp := utils.GetAllRequestParams(c, ctx)
 
 		rpBytes, _ := json.Marshal(rp)
