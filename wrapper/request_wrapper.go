@@ -278,8 +278,13 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 }
 
 func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any, rt any, start time.Time, ll LogLevel) {
+	if ll == LOG_LEVEL_NONE {
+		return
+	}
+
 	ctxJson, _ := json.Marshal(ctx)
 	latency := time.Now().Sub(start)
+
 	if ll == LOG_LEVEL_ALL {
 		rpBytes, _ := json.Marshal(rp)
 		rtBytes, _ := json.Marshal(rt)
