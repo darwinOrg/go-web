@@ -28,12 +28,6 @@ func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
 	_ = e.SetTrustedProxies(nil)
 	e.HandleMethodNotAllowed = true
 
-	router, err := graceful.Default()
-	if err != nil {
-		panic(err)
-	}
-	defer router.Close()
-
 	return e
 }
 
