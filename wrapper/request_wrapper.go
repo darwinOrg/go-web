@@ -23,12 +23,8 @@ import (
 
 type LogLevel int
 
-func (ll LogLevel) Value() int {
-	return int(ll)
-}
-
 const (
-	LOG_LEVEL_NONE    LogLevel = 0
+	LOG_LEVEL_NONE    LogLevel = -1
 	LOG_LEVEL_PARAM   LogLevel = 1
 	LOG_LEVEL_RETURN  LogLevel = 2
 	LOG_LEVEL_ALL     LogLevel = 3
@@ -208,7 +204,7 @@ func CheckProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc 
 func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
-		if rh.LogLevel.Value() == 0 {
+		if rh.LogLevel == 0 {
 			rh.LogLevel = DEFAULT_LOG_LEVEL
 		}
 
