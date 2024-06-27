@@ -3,12 +3,11 @@ module github.com/darwinOrg/go-web
 go 1.19
 
 require (
-	github.com/darwinOrg/go-common v0.1.55
+	github.com/darwinOrg/go-common v0.1.56
 	github.com/darwinOrg/go-logger v0.0.6
 	github.com/darwinOrg/go-monitor v0.0.4
 	github.com/darwinOrg/go-validator-ext v0.0.7
 	github.com/gin-contrib/cors v1.7.2
-	github.com/gin-contrib/graceful v1.0.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-playground/validator/v10 v10.20.0
 	github.com/google/uuid v1.6.0
@@ -46,7 +45,6 @@ require (
 	golang.org/x/arch v0.8.0 // indirect
 	golang.org/x/crypto v0.23.0 // indirect
 	golang.org/x/net v0.25.0 // indirect
-	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect

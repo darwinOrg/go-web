@@ -340,7 +340,7 @@ func getTranslateErrMsg(err validator.FieldError, lng string) string {
 }
 
 func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
-	if !dgsys.IsQa() && !dgsys.IsProd() {
+	if !dgsys.IsFormalProfile() {
 		requestApis = append(requestApis, &RequestApi{
 			Method:         method,
 			BasePath:       rh.BasePath(),
