@@ -3,6 +3,7 @@ package utils
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
+	"mime"
 	"mime/multipart"
 	"strconv"
 	"strings"
@@ -80,7 +82,16 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 }
 
 func parseMultipartForm(c *gin.Context, body []byte, mp map[string]any) error {
-	reader := multipart.NewReader(bytes.NewReader(body), c.ContentType())
+	contentType := c.GetHeader("Content-Type")
+	_, params, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return err
+	}
+	boundary, ok := params["boundary"]
+	if !ok {
+		return fmt.Errorf("content-type header does not contain boundary parameter")
+	}
+	reader := multipart.NewReader(bytes.NewReader(body), boundary)
 	form, err := reader.ReadForm(32 << 20) // 32 MB max memory
 	if err != nil {
 		return err
