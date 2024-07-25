@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
+	"mime/multipart"
 	"strconv"
 	"strings"
 )
@@ -55,10 +56,17 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 
 	mp := map[string]any{}
 
-	if body != nil {
-		err := json.Unmarshal(body, &mp)
-		if err != nil {
-			dglogger.Infof(ctx, "parse request body error: %v", err)
+	if len(body) > 0 {
+		if c.GetHeader("Content-Type") == "multipart/form-data" {
+			err := parseMultipartForm(c, body, mp)
+			if err != nil {
+				dglogger.Errorf(ctx, "form data parse error: %v", err)
+			}
+		} else {
+			err := json.Unmarshal(body, &mp)
+			if err != nil {
+				dglogger.Errorf(ctx, "parse request body error: %v", err)
+			}
 		}
 	}
 
@@ -69,6 +77,20 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 	}
 
 	return mp
+}
+
+func parseMultipartForm(c *gin.Context, body []byte, mp map[string]any) error {
+	reader := multipart.NewReader(bytes.NewReader(body), c.ContentType())
+	form, err := reader.ReadForm(32 << 20) // 32 MB max memory
+	if err != nil {
+		return err
+	}
+	for key, values := range form.Value {
+		if len(values) > 0 {
+			mp[key] = values[0]
+		}
+	}
+	return nil
 }
 
 func isGetOrHead(c *gin.Context) bool {
