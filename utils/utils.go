@@ -57,7 +57,7 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 	mp := map[string]any{}
 
 	if len(body) > 0 {
-		if c.GetHeader("Content-Type") == "multipart/form-data" {
+		if c.ContentType() == "multipart/form-data" {
 			err := parseMultipartForm(c, body, mp)
 			if err != nil {
 				dglogger.Errorf(ctx, "form data parse error: %v", err)
