@@ -71,7 +71,6 @@ type RequestHolder[T any, V any] struct {
 	BizHandler       HandlerFunc[T, V]
 	LogLevel         LogLevel
 	NotLogSQL        bool
-	mapRequestObj    bool
 }
 
 type MapRequest struct {
@@ -86,18 +85,6 @@ func Get[T any, V any](rh *RequestHolder[T, V]) {
 }
 
 func Post[T any, V any](rh *RequestHolder[T, V]) {
-	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
-	AppendRequestApi(rh, http.MethodPost)
-}
-
-func MapGet[V any](rh *RequestHolder[MapRequest, V]) {
-	rh.mapRequestObj = true
-	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
-	AppendRequestApi(rh, http.MethodGet)
-}
-
-func MapPost[V any](rh *RequestHolder[MapRequest, V]) {
-	rh.mapRequestObj = true
 	rh.POST(rh.RelativePath, BuildHandlersChain(rh)...)
 	AppendRequestApi(rh, http.MethodPost)
 }
@@ -210,53 +197,41 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
-		rp := utils.GetAllRequestParams(c, ctx)
-
-		rpBytes, _ := json.Marshal(rp)
-		dglogger.Infof(ctx, "path: %s, params: %s", c.Request.URL.Path, rpBytes)
 
 		var rt any
-		if rh.mapRequestObj {
-			var ro any
-			ro = &MapRequest{MP: rp}
-			req := ro.(*T)
-			rt = rh.BizHandler(c, ctx, req)
-		} else {
-			req := new(T)
-			if err := c.ShouldBind(req); err != nil {
-				dglogger.Errorf(ctx, "bind request object error: %v", err)
+		req := new(T)
+		if err := c.ShouldBind(req); err != nil {
+			dglogger.Errorf(ctx, "bind request object error: %v", err)
 
-				var errs validator.ValidationErrors
-				ok := errors.As(err, &errs)
-				if ok {
-					customErrMsgs := getCustomErrMsgs(req)
+			var errs validator.ValidationErrors
+			ok := errors.As(err, &errs)
+			if ok {
+				customErrMsgs := getCustomErrMsgs(req)
 
-					var errMsgs []string
-					for _, e := range errs {
-						ns := e.Namespace()
-						customErrMsg, ok2 := customErrMsgs[ns]
-						if ok2 {
-							errMsgs = append(errMsgs, customErrMsg)
-						} else {
-							translateErrMsg := getTranslateErrMsg(e, ctx.Lang)
-							errMsgs = append(errMsgs, translateErrMsg)
-						}
-					}
-
-					msg := strings.Join(errMsgs, "\n")
-
-					if msg != "" {
-						rt = result.SimpleFail[string](msg)
+				var errMsgs []string
+				for _, e := range errs {
+					ns := e.Namespace()
+					customErrMsg, ok2 := customErrMsgs[ns]
+					if ok2 {
+						errMsgs = append(errMsgs, customErrMsg)
+					} else {
+						translateErrMsg := getTranslateErrMsg(e, ctx.Lang)
+						errMsgs = append(errMsgs, translateErrMsg)
 					}
 				}
 
-				if rt == nil {
-					rt = result.FailByError[*result.Void](dgerr.ARGUMENT_NOT_VALID)
-				}
+				msg := strings.Join(errMsgs, "\n")
 
-			} else {
-				rt = rh.BizHandler(c, ctx, req)
+				if msg != "" {
+					rt = result.SimpleFail[string](msg)
+				}
 			}
+
+			if rt == nil {
+				rt = result.FailByError[*result.Void](dgerr.ARGUMENT_NOT_VALID)
+			}
+		} else {
+			rt = rh.BizHandler(c, ctx, req)
 		}
 
 		if len(returnResultPostProcessors) > 0 {
@@ -265,7 +240,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 			}
 		}
 
-		printBizHandlerLog(c, ctx, rp, rt, start, rh.LogLevel)
+		printBizHandlerLog(c, ctx, req, rt, start, rh.LogLevel)
 
 		if !c.Writer.Written() {
 			c.JSON(http.StatusOK, rt)
@@ -275,7 +250,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
-func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any, rt any, start time.Time, ll LogLevel) {
+func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, start time.Time, ll LogLevel) {
 	if ll == LOG_LEVEL_NONE {
 		return
 	}
@@ -284,14 +259,14 @@ func printBizHandlerLog(c *gin.Context, ctx *dgctx.DgContext, rp map[string]any,
 	latency := time.Now().Sub(start)
 
 	if ll == LOG_LEVEL_ALL {
-		rpBytes, _ := json.Marshal(rp)
-		rtBytes, _ := json.Marshal(rt)
+		rpBytes, _ := dglogger.Json(rp)
+		rtBytes, _ := dglogger.Json(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, latency)
 	} else if ll == LOG_LEVEL_PARAM {
-		rpBytes, _ := json.Marshal(rp)
+		rpBytes, _ := dglogger.Json(rp)
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
 	} else if ll == LOG_LEVEL_RETURN {
-		rtBytes, _ := json.Marshal(rt)
+		rtBytes, _ := dglogger.Json(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)
 	}
 }
