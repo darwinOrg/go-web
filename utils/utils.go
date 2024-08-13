@@ -2,17 +2,12 @@ package utils
 
 import (
 	"bytes"
-	"encoding/json"
-	"fmt"
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
-	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"io"
-	"mime"
-	"mime/multipart"
 	"strconv"
 	"strings"
 )
@@ -37,7 +32,7 @@ func GetLang(c *gin.Context) string {
 	return c.Query(constants.Lang)
 }
 
-func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
+func GetBodyBytes(c *gin.Context) []byte {
 	var body []byte
 
 	if !isGetOrHead(c) {
@@ -56,52 +51,7 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 		}
 	}
 
-	mp := map[string]any{}
-
-	if len(body) > 0 {
-		if c.ContentType() == "multipart/form-data" {
-			err := parseMultipartForm(c, body, mp)
-			if err != nil {
-				dglogger.Errorf(ctx, "form data parse error: %v", err)
-			}
-		} else {
-			err := json.Unmarshal(body, &mp)
-			if err != nil {
-				dglogger.Errorf(ctx, "parse request body error: %v", err)
-			}
-		}
-	}
-
-	if len(c.Request.URL.Query()) > 0 {
-		for k := range c.Request.URL.Query() {
-			mp[k] = c.Query(k)
-		}
-	}
-
-	return mp
-}
-
-func parseMultipartForm(c *gin.Context, body []byte, mp map[string]any) error {
-	contentType := c.GetHeader("Content-Type")
-	_, params, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		return err
-	}
-	boundary, ok := params["boundary"]
-	if !ok {
-		return fmt.Errorf("content-type header does not contain boundary parameter")
-	}
-	reader := multipart.NewReader(bytes.NewReader(body), boundary)
-	form, err := reader.ReadForm(32 << 20) // 32 MB max memory
-	if err != nil {
-		return err
-	}
-	for key, values := range form.Value {
-		if len(values) > 0 {
-			mp[key] = values[0]
-		}
-	}
-	return nil
+	return body
 }
 
 func isGetOrHead(c *gin.Context) bool {
