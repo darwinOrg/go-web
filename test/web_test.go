@@ -27,7 +27,6 @@ func TestGet(t *testing.T) {
 		},
 	})
 	_ = engine.Run(fmt.Sprintf(":%d", 8080))
-	//wrapper.GracefulRun(engine, fmt.Sprintf(":%d", 8080))
 }
 
 func TestPost(t *testing.T) {
@@ -47,7 +46,6 @@ func TestPost(t *testing.T) {
 		},
 	})
 	_ = engine.Run(fmt.Sprintf(":%d", 8080))
-	//wrapper.GracefulRun(engine, fmt.Sprintf(":%d", 8080))
 }
 
 type UserRequest struct {
@@ -62,8 +60,4 @@ type UserResponse struct {
 
 type userInfo struct {
 	Sex int `binding:"required,gt=0,lt=5" errMsg:"性别错误" remark:"性别"`
-}
-
-func TestHttp2Call(t *testing.T) {
-
 }
