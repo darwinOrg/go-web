@@ -8,6 +8,7 @@ import (
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
 	"testing"
+	"time"
 )
 
 func TestGet(t *testing.T) {
@@ -46,6 +47,57 @@ func TestPost(t *testing.T) {
 		},
 	})
 	_ = engine.Run(fmt.Sprintf(":%d", 8080))
+}
+
+func TestSSE(t *testing.T) {
+	monitor.Start("test", 19002)
+
+	engine := wrapper.DefaultEngine()
+	wrapper.Get(&wrapper.RequestHolder[result.Void, *result.Result[*result.Void]]{
+		Remark:       "测试sse接口",
+		RouterGroup:  engine.Group("/public"),
+		RelativePath: "sse",
+		NonLogin:     true,
+		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *result.Void) *result.Result[*result.Void] {
+			handleSSE(gc)
+			return result.SimpleSuccess()
+		},
+	})
+	_ = engine.Run(fmt.Sprintf(":%d", 8080))
+}
+
+func handleSSE(c *gin.Context) {
+	// 设置响应头
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+
+	// 创建一个通道，用于发送事件
+	messageChan := make(chan string)
+
+	// 监听客户端是否断开连接
+	go func() {
+		defer close(messageChan)
+		for i := 0; i < 10; i++ {
+			select {
+			case <-c.Request.Context().Done():
+				fmt.Println("Client disconnected")
+				return
+			case messageChan <- fmt.Sprintf("data: Message %d at %s\n\n", i, time.Now().Format(time.RFC3339)):
+				time.Sleep(1 * time.Second)
+			}
+		}
+	}()
+
+	// 发送消息到客户端
+	for msg := range messageChan {
+		_, err := c.Writer.WriteString(msg)
+		if err != nil {
+			fmt.Println("Error writing message:", err)
+			return
+		}
+		c.Writer.Flush()
+	}
 }
 
 type UserRequest struct {
