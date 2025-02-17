@@ -9,7 +9,7 @@ require (
 	github.com/darwinOrg/go-validator-ext v0.0.9
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-playground/validator/v10 v10.24.0
+	github.com/go-playground/validator/v10 v10.25.0
 	github.com/google/uuid v1.6.0
 )
 
