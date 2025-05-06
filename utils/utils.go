@@ -62,12 +62,12 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 		if c.ContentType() == "multipart/form-data" {
 			err := parseMultipartForm(c, body, mp)
 			if err != nil {
-				dglogger.Errorf(ctx, "form data parse error: %v", err)
+				dglogger.Errorf(ctx, "form data parse error | body: %s | err: %v", string(body), err)
 			}
 		} else {
 			err := json.Unmarshal(body, &mp)
 			if err != nil {
-				dglogger.Errorf(ctx, "parse request body error: %v", err)
+				dglogger.Errorf(ctx, "parse request body error | body: %s | err: %v", string(body), err)
 			}
 		}
 	}
