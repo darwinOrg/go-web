@@ -8,6 +8,7 @@ import (
 	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
 	"os/signal"
 	"syscall"
 )
@@ -46,7 +47,7 @@ func NewGracefulEngine(opts []graceful.Option, middlewares ...gin.HandlerFunc) *
 }
 
 func RunGracefulEngine(g *graceful.Graceful) {
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Kill, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	defer stop()
 	defer g.Close()
 
