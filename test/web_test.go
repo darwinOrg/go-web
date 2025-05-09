@@ -6,6 +6,7 @@ import (
 	"github.com/darwinOrg/go-common/result"
 	"github.com/darwinOrg/go-monitor"
 	"github.com/darwinOrg/go-web/wrapper"
+	"github.com/gin-contrib/graceful"
 	"github.com/gin-gonic/gin"
 	"testing"
 	"time"
@@ -14,7 +15,7 @@ import (
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
 
-	engine := wrapper.DefaultEngine()
+	engine := wrapper.DefaultGracefulEngine(graceful.WithAddr(":8080"))
 	wrapper.Get(&wrapper.RequestHolder[wrapper.MapRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/public"),
@@ -24,10 +25,11 @@ func TestGet(t *testing.T) {
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
 			}
+			time.Sleep(5 * time.Second)
 			return result.Success(resp)
 		},
 	})
-	_ = engine.Run(fmt.Sprintf(":%d", 8080))
+	wrapper.RunGracefulEngine(engine)
 }
 
 func TestPost(t *testing.T) {
