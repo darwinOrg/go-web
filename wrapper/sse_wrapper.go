@@ -5,9 +5,11 @@ import (
 	"io"
 )
 
-func SseStream(gc *gin.Context, streamFunc func(w io.Writer) bool) {
+func SseStream(gc *gin.Context, streamFunc func() bool) {
 	gc.Header("Content-Type", "text/event-stream;charset=utf-8")
-	gc.Stream(streamFunc)
+	gc.Stream(func(w io.Writer) bool {
+		return streamFunc()
+	})
 }
 
 func SseEvent(gc *gin.Context, message any) {
