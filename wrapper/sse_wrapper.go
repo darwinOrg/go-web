@@ -14,7 +14,7 @@ type SseMessage struct {
 }
 
 func SseStream(gc *gin.Context, ctx *dgctx.DgContext, messageChan chan string) {
-	gc.Header("Content-Type", "text/event-stream;charset=utf-8")
+	gc.Header("Content-Type", "text/event-stream")
 	gc.Header("Cache-Control", "no-cache")
 	gc.Header("Connection", "keep-alive")
 
@@ -36,4 +36,8 @@ func SendSseMessage(messageChan chan string, name string, data any) {
 	}
 
 	messageChan <- fmt.Sprintf("data: %s\n\n", utils.MustConvertBeanToJsonString(msg))
+}
+
+func SendSseDone(messageChan chan string) {
+	messageChan <- "data: DONE\n\n"
 }
