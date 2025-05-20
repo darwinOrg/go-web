@@ -67,37 +67,20 @@ func TestSSE(t *testing.T) {
 }
 
 func handleSSE(c *gin.Context) {
-	// 设置响应头
-	c.Header("Content-Type", "text/event-stream")
-	c.Header("Cache-Control", "no-cache")
-	c.Header("Connection", "keep-alive")
-
 	// 创建一个通道，用于发送事件
 	messageChan := make(chan string)
 
 	// 监听客户端是否断开连接
 	go func() {
 		defer close(messageChan)
-		for i := 0; i < 10; i++ {
-			select {
-			case <-c.Request.Context().Done():
-				fmt.Println("Client disconnected")
-				return
-			case messageChan <- fmt.Sprintf("data: Message %d at %s\n\n", i, time.Now().Format(time.RFC3339)):
-				time.Sleep(1 * time.Second)
-			}
+		for i := 0; i < 5; i++ {
+			wrapper.SendSseMessage(messageChan, "message", i)
+			time.Sleep(time.Second)
 		}
+		wrapper.SendSseDone(messageChan)
 	}()
 
-	// 发送消息到客户端
-	for msg := range messageChan {
-		_, err := c.Writer.WriteString(msg)
-		if err != nil {
-			fmt.Println("Error writing message:", err)
-			return
-		}
-		c.Writer.Flush()
-	}
+	wrapper.SseStream(c, dgctx.SimpleDgContext(), messageChan)
 }
 
 type UserRequest struct {
