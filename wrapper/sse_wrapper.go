@@ -8,6 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const sseWrittenKey = "SSE_WRITTEN"
+
 type SseMessage struct {
 	Name string `json:"name"`
 	Data any    `json:"data"`
@@ -27,6 +29,8 @@ func SseStream(gc *gin.Context, ctx *dgctx.DgContext, messageChan chan string) {
 		}
 		gc.Writer.Flush()
 	}
+
+	setSseWritten(ctx)
 }
 
 func SendSseMessage(messageChan chan string, name string, data any) {
@@ -40,4 +44,15 @@ func SendSseMessage(messageChan chan string, name string, data any) {
 
 func SendSseDone(messageChan chan string) {
 	messageChan <- "data: DONE\n\n"
+}
+
+func setSseWritten(ctx *dgctx.DgContext) {
+	ctx.SetExtraKeyValue(sseWrittenKey, true)
+}
+
+func isSseWritten(ctx *dgctx.DgContext) bool {
+	if written, ok := ctx.GetExtraValue(sseWrittenKey).(bool); ok && written {
+		return true
+	}
+	return false
 }
