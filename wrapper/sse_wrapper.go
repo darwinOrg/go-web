@@ -3,6 +3,7 @@ package wrapper
 import (
 	"fmt"
 	dgctx "github.com/darwinOrg/go-common/context"
+	"github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
 )
@@ -23,6 +24,17 @@ func SseStream(gc *gin.Context, ctx *dgctx.DgContext, messageChan chan string) {
 	}
 }
 
-func SseMessage(messageChan chan string, message string) {
-	messageChan <- fmt.Sprintf("data: %s\n\n", message)
+func SseMessage(messageChan chan string, message any) {
+	var msgStr string
+
+	switch message.(type) {
+	case string:
+		msgStr = message.(string)
+	default:
+		msgStr = utils.MustConvertBeanToJsonString(message)
+	}
+
+	if msgStr != "" {
+		messageChan <- fmt.Sprintf("data: %s\n\n", msgStr)
+	}
 }
