@@ -7,6 +7,8 @@ import (
 
 func SseStream(gc *gin.Context, streamFunc func() bool) {
 	gc.Header("Content-Type", "text/event-stream;charset=utf-8")
+	gc.Header("Cache-Control", "no-cache")
+	gc.Header("Connection", "keep-alive")
 	gc.Stream(func(w io.Writer) bool {
 		return streamFunc()
 	})

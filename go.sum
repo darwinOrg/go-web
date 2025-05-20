@@ -13,8 +13,8 @@ github.com/cloudwego/base64x v0.1.5 h1:XPciSp1xaq2VCSt6lF0phncD4koWyULpl5bUxbfCy
 github.com/cloudwego/base64x v0.1.5/go.mod h1:0zlkT4Wn5C6NdauXdJRhSKRlJvmclQ1hhJgA0rcu/8w=
 github.com/cloudwego/iasm v0.2.0/go.mod h1:8rXZaNYT2n95jn+zTI1sDr+IgcD2GVs0nlbbQPiEFhY=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
-github.com/darwinOrg/go-common v0.1.86 h1:WpQCa8o4IZMlf1iGktfJa3jEk3yfpFviW8rr+vEZkZY=
-github.com/darwinOrg/go-common v0.1.86/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
+github.com/darwinOrg/go-common v0.1.87 h1:ctDCQX0ZWOI8WByPt4VGGKQKqLOjnd1iM6jWigf2I04=
+github.com/darwinOrg/go-common v0.1.87/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
 github.com/darwinOrg/go-logger v0.0.12 h1:zaH74lUadHmzo/+90/DRASo4XTmdeIgnwYR54iJMGzM=
 github.com/darwinOrg/go-logger v0.0.12/go.mod h1:cP/99H+q2U9jXhpFIWlvNpHvBk0CPQmsDlkvaE7yUy8=
 github.com/darwinOrg/go-monitor v0.0.9 h1:UKG3ci4MoWu4P/56XmXuUYbFyu9++mGzczNFOSZy5C4=
