@@ -19,18 +19,23 @@ func SseStream(gc *gin.Context, ctx *dgctx.DgContext, messageChan chan string) {
 	gc.Header("Content-Type", "text/event-stream")
 	gc.Header("Cache-Control", "no-cache")
 	gc.Header("Connection", "keep-alive")
+	defer setSseWritten(ctx)
 
-	for msg := range messageChan {
-		_, we := gc.Writer.WriteString(msg)
-		if we != nil {
-			dglogger.Errorf(ctx, "writing message error: %v", we)
-		} else {
-			dglogger.Debugf(ctx, "writing message: %s", msg)
+	for {
+		select {
+		case <-gc.Done():
+			return
+		case msg := <-messageChan:
+			_, we := gc.Writer.WriteString(msg)
+			if we != nil {
+				dglogger.Errorf(ctx, "writing message error: %v", we)
+			} else {
+				dglogger.Debugf(ctx, "writing message: %s", msg)
+			}
+			gc.Writer.Flush()
 		}
-		gc.Writer.Flush()
 	}
 
-	setSseWritten(ctx)
 }
 
 func SendSseMessage(messageChan chan string, name string, data any) {
