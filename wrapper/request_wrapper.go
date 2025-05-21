@@ -242,7 +242,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		printBizHandlerLog(c, ctx, req, rt, start, rh.LogLevel)
 
-		if !c.Writer.Written() && !isSseWritten(ctx) {
+		if !c.Writer.Written() {
 			c.JSON(http.StatusOK, rt)
 		}
 
