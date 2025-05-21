@@ -5,12 +5,12 @@ import (
 	"io"
 )
 
-type SseMessage struct {
+type SseBody struct {
 	Event string `json:"event"`
 	Data  any    `json:"data"`
 }
 
-func SimpleSseStream(gc *gin.Context, messageChan chan *SseMessage) {
+func SimpleSseStream(gc *gin.Context, messageChan chan *SseBody) {
 	SseStream(gc, func(w io.Writer) bool {
 		msg, ok := <-messageChan
 		if ok {
@@ -40,4 +40,11 @@ func SseDone(gc *gin.Context) {
 
 func SseEvent(gc *gin.Context, event string, message any) {
 	gc.SSEvent(event, message)
+}
+
+func SseMessage(messageChan chan *SseBody, event string, message any) {
+	messageChan <- &SseBody{
+		Event: event,
+		Data:  message,
+	}
 }
