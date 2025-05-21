@@ -1,45 +1,43 @@
 package wrapper
 
 import (
-	"fmt"
-	dgctx "github.com/darwinOrg/go-common/context"
-	"github.com/darwinOrg/go-common/utils"
-	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
+	"io"
 )
 
-const sseWrittenKey = "SSE_WRITTEN"
-
 type SseMessage struct {
-	Name string `json:"name"`
-	Data any    `json:"data"`
+	Event string `json:"event"`
+	Data  any    `json:"data"`
 }
 
-func SseStream(gc *gin.Context, ctx *dgctx.DgContext, messageChan chan string) {
+func SimpleSseStream(gc *gin.Context, messageChan chan *SseMessage) {
+	SseStream(gc, func(w io.Writer) bool {
+		msg, ok := <-messageChan
+		if ok {
+			SseEvent(gc, msg.Event, msg.Data)
+		} else {
+			SseDone(gc)
+		}
+		return ok
+	})
+}
+
+func SseStream(gc *gin.Context, step func(w io.Writer) bool) {
 	gc.Header("Content-Type", "text/event-stream")
 	gc.Header("Cache-Control", "no-cache")
 	gc.Header("Connection", "keep-alive")
 
-	for msg := range messageChan {
-		_, we := gc.Writer.WriteString(msg)
-		if we != nil {
-			dglogger.Errorf(ctx, "writing message error: %v", we)
-		} else {
-			dglogger.Debugf(ctx, "writing message: %s", msg)
-		}
-		gc.Writer.Flush()
-	}
+	gc.Stream(step)
 }
 
-func SendSseMessage(messageChan chan string, name string, data any) {
-	msg := SseMessage{
-		Name: name,
-		Data: data,
-	}
-
-	messageChan <- fmt.Sprintf("data: %s\n\n", utils.MustConvertBeanToJsonString(msg))
+func SseData(gc *gin.Context, message any) {
+	gc.SSEvent("data", message)
 }
 
-func SendSseDone(messageChan chan string) {
-	messageChan <- "data: DONE\n\n"
+func SseDone(gc *gin.Context) {
+	gc.SSEvent("data", "DONE")
+}
+
+func SseEvent(gc *gin.Context, event string, message any) {
+	gc.SSEvent(event, message)
 }

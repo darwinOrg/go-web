@@ -7,6 +7,7 @@ import (
 	"github.com/darwinOrg/go-monitor"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
+	"io"
 	"testing"
 	"time"
 )
@@ -67,20 +68,26 @@ func TestSSE(t *testing.T) {
 }
 
 func handleSSE(c *gin.Context) {
-	// 创建一个通道，用于发送事件
-	messageChan := make(chan string)
+	messageChan := make(chan any)
 
 	// 监听客户端是否断开连接
 	go func() {
 		defer close(messageChan)
 		for i := 0; i < 5; i++ {
-			wrapper.SendSseMessage(messageChan, "message", i)
+			messageChan <- &UserResponse{LogUrl: fmt.Sprintf("https://test/%d", i)}
 			time.Sleep(time.Second)
 		}
-		wrapper.SendSseDone(messageChan)
 	}()
 
-	wrapper.SseStream(c, dgctx.SimpleDgContext(), messageChan)
+	wrapper.SseStream(c, func(w io.Writer) bool {
+		msg, ok := <-messageChan
+		if ok {
+			wrapper.SseData(c, msg)
+		} else {
+			wrapper.SseDone(c)
+		}
+		return ok
+	})
 }
 
 type UserRequest struct {
