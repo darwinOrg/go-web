@@ -315,16 +315,14 @@ func getTranslateErrMsg(err validator.FieldError, lng string) string {
 }
 
 func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
-	if !dgsys.IsFormalProfile() {
-		requestApis = append(requestApis, &RequestApi{
-			Method:         method,
-			BasePath:       rh.BasePath(),
-			RelativePath:   rh.RelativePath,
-			Remark:         rh.Remark,
-			RequestObject:  new(T),
-			ResponseObject: new(V),
-		})
-	}
+	requestApis = append(requestApis, &RequestApi{
+		Method:         method,
+		BasePath:       rh.BasePath(),
+		RelativePath:   rh.RelativePath,
+		Remark:         rh.Remark,
+		RequestObject:  new(T),
+		ResponseObject: new(V),
+	})
 }
 
 func GetRequestApis() []*RequestApi {
