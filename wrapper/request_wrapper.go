@@ -2,7 +2,6 @@ package wrapper
 
 import (
 	"encoding/json"
-	"errors"
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
@@ -13,10 +12,8 @@ import (
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 	"go/types"
 	"net/http"
-	"reflect"
 	"strings"
 	"time"
 )
@@ -202,33 +199,11 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		req := new(T)
 		if err := c.ShouldBind(req); err != nil {
 			dglogger.Errorf(ctx, "bind request object error: %v", err)
-
-			var errs validator.ValidationErrors
-			ok := errors.As(err, &errs)
-			if ok {
-				customErrMsgs := getCustomErrMsgs(req)
-
-				var errMsgs []string
-				for _, e := range errs {
-					ns := e.Namespace()
-					customErrMsg, ok2 := customErrMsgs[ns]
-					if ok2 {
-						errMsgs = append(errMsgs, customErrMsg)
-					} else {
-						translateErrMsg := getTranslateErrMsg(e, ctx.Lang)
-						errMsgs = append(errMsgs, translateErrMsg)
-					}
-				}
-
-				msg := strings.Join(errMsgs, "\n")
-
-				if msg != "" {
-					rt = result.SimpleFail[string](msg)
-				}
-			}
-
-			if rt == nil {
-				rt = result.FailByError[*result.Void](dgerr.ARGUMENT_NOT_VALID)
+			errMsg := ve.TranslateValidateError(err, ctx.Lang)
+			if errMsg != "" {
+				rt = result.SimpleFailByError(dgerr.SimpleDgError(errMsg))
+			} else {
+				rt = result.SimpleFailByError(err)
 			}
 		} else {
 			rt = rh.BizHandler(c, ctx, req)
@@ -269,49 +244,6 @@ func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt a
 		rtBytes, _ := dglogger.Json(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)
 	}
-}
-
-func getCustomErrMsgs(req any) map[string]string {
-	reqType := reflect.TypeOf(req)
-	if reqType.Kind() != reflect.Ptr || reqType.Elem().Kind() != reflect.Struct {
-		return map[string]string{}
-	}
-
-	errMsgs := map[string]string{}
-	findCustomErrMsgs(reqType.Elem(), reqType.Elem().Name(), "", errMsgs)
-	return errMsgs
-}
-
-func findCustomErrMsgs(tType reflect.Type, tName string, tPath string, errMsgs map[string]string) {
-	var sType reflect.Type
-	sTypeKind := tType.Kind()
-	if sTypeKind == reflect.Ptr {
-		sType = tType.Elem()
-	} else {
-		sType = tType
-	}
-
-	tPath = tPath + tName + "."
-
-	for i := 0; i < sType.NumField(); i++ {
-		f := sType.Field(i)
-		fType := f.Type
-		fName := f.Name
-
-		errMsg := f.Tag.Get("errMsg")
-		if errMsg != "" {
-			ns := tPath + fName
-			errMsgs[ns] = errMsg
-		}
-
-		if fType.Kind() == reflect.Ptr && fType.Elem().Kind() == reflect.Struct {
-			findCustomErrMsgs(fType, fName, tPath, errMsgs)
-		}
-	}
-}
-
-func getTranslateErrMsg(err validator.FieldError, lng string) string {
-	return ve.TranslateValidateError(validator.ValidationErrors{err}, lng)
 }
 
 func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
