@@ -8,7 +8,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"time"
 )
 
 type SseBody struct {
@@ -79,18 +78,12 @@ func SseForward(gc *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
 	gc.Status(statusCode)
 	utils.WriteHeaders(gc, resp.Header)
 
-	reader := bufio.NewReader(resp.Body)
-	for {
-		rawLine, readErr := reader.ReadBytes('\n')
-		if readErr == io.EOF {
-			break
-		}
-
-		if len(rawLine) > 0 {
-			_, _ = gc.Writer.Write(rawLine)
+	scanner := bufio.NewScanner(resp.Body)
+	for scanner.Scan() {
+		bytes := scanner.Bytes()
+		if len(bytes) > 0 {
+			_, _ = gc.Writer.Write(bytes)
 			gc.Writer.Flush()
 		}
-
-		time.Sleep(time.Millisecond * 10)
 	}
 }
