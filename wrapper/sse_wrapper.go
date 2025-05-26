@@ -1,8 +1,14 @@
 package wrapper
 
 import (
+	"bufio"
+	"github.com/darwinOrg/go-common/result"
+	dghttp "github.com/darwinOrg/go-httpclient"
+	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
 	"io"
+	"net/http"
+	"time"
 )
 
 type SseBody struct {
@@ -46,5 +52,45 @@ func SseMessage(messageChan chan *SseBody, event string, message any) {
 	messageChan <- &SseBody{
 		Event: event,
 		Data:  message,
+	}
+}
+
+func ForwardSse(gc *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
+	req, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
+	if err != nil {
+		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		return
+	}
+
+	req.Header = gc.Request.Header
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+	ctx := utils.GetDgContext(gc)
+
+	resp, err := hc.DoRequestRaw(ctx, req)
+	if err != nil {
+		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		return
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	statusCode := utils.AdapterStatusCode(resp.StatusCode)
+	gc.Status(statusCode)
+	utils.WriteHeaders(gc, resp.Header)
+
+	reader := bufio.NewReader(resp.Body)
+	for {
+		rawLine, readErr := reader.ReadBytes('\n')
+		if readErr == io.EOF {
+			break
+		}
+
+		if len(rawLine) > 0 {
+			_, _ = gc.Writer.Write(rawLine)
+			gc.Writer.Flush()
+		}
+
+		time.Sleep(time.Millisecond * 10)
 	}
 }
