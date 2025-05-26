@@ -55,7 +55,7 @@ func SseMessage(messageChan chan *SseBody, event string, message any) {
 	}
 }
 
-func ForwardSse(gc *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
+func SseForward(gc *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
 	req, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
