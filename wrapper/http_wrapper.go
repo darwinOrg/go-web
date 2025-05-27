@@ -1,6 +1,7 @@
 package wrapper
 
 import (
+	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
@@ -9,31 +10,30 @@ import (
 	"net/http"
 )
 
-func HttpForward(c *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
-	req, err := http.NewRequest(c.Request.Method, forwardUrl, c.Request.Body)
+func HttpForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {
+	req, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
-	req.Header = c.Request.Header
-	ctx := utils.GetDgContext(c)
+	req.Header = gc.Request.Header
 	dglogger.Debugf(ctx, "raw request header: %v", req.Header)
 
 	statusCode, headers, body, err := hc.DoRequest(ctx, req)
 	dglogger.Debugf(ctx, "forward url[%s], statusCode:%d, body:%s", forwardUrl, statusCode, body)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
 	statusCode = utils.AdapterStatusCode(statusCode)
-	c.Status(statusCode)
-	utils.WriteHeaders(c, headers)
+	gc.Status(statusCode)
+	utils.WriteHeaders(gc, headers)
 
 	if len(body) > 0 {
-		_, _ = c.Writer.Write(body)
+		_, _ = gc.Writer.Write(body)
 	} else {
-		_, _ = c.Writer.Write([]byte{})
+		_, _ = gc.Writer.Write([]byte{})
 	}
 }
