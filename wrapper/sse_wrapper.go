@@ -17,7 +17,10 @@ import (
 	"time"
 )
 
-const sseDefaultSleepTime = time.Millisecond * 10
+const (
+	jsonContentType     = "application/json; charset=utf-8"
+	sseDefaultSleepTime = time.Millisecond * 10
+)
 
 type SseBody struct {
 	Event string `json:"event"`
@@ -121,6 +124,7 @@ func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient,
 			req.Header.Set(key, val)
 		}
 	}
+	req.Header.Set("Content-Type", jsonContentType)
 
 	SseRequestRaw(gc, hc, req)
 	return nil
