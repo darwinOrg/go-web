@@ -2,13 +2,17 @@ package wrapper
 
 import (
 	"bufio"
+	"bytes"
+	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dgutils "github.com/darwinOrg/go-common/utils"
 	dghttp "github.com/darwinOrg/go-httpclient"
+	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
+	nu "net/url"
 	"strings"
 	"time"
 )
@@ -70,24 +74,22 @@ func SseForward(gc *gin.Context, hc *dghttp.DgHttpClient, forwardUrl string) {
 	SseRequestRaw(gc, hc, req)
 }
 
-func SseGet(gc *gin.Context, hc *dghttp.DgHttpClient, url string, params any, headers map[string]string) {
-	SseRequest(gc, hc, http.MethodGet, url, params, headers)
-}
-
-func SsePost(gc *gin.Context, hc *dghttp.DgHttpClient, url string, params any, headers map[string]string) {
-	SseRequest(gc, hc, http.MethodPost, url, params, headers)
-}
-
-func SseRequest(gc *gin.Context, hc *dghttp.DgHttpClient, method, url string, params any, headers map[string]string) {
-	var body io.Reader
-	if params != nil {
-		body = strings.NewReader(dgutils.MustConvertBeanToJsonString(params))
+func SseGet(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, url string, params map[string]string, headers map[string]string) error {
+	if len(params) > 0 {
+		if params != nil && len(params) > 0 {
+			vs := nu.Values{}
+			for k, v := range params {
+				vs.Add(k, v)
+			}
+			url += dgutils.IfReturn(strings.Contains(url, "?"), "&", "?")
+			url += vs.Encode()
+		}
 	}
 
-	req, err := http.NewRequest(method, url, body)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
-		return
+		dglogger.Errorf(ctx, "new sse get request error, url: %s, err: %v", url, err)
+		return err
 	}
 
 	if len(headers) > 0 {
@@ -97,6 +99,31 @@ func SseRequest(gc *gin.Context, hc *dghttp.DgHttpClient, method, url string, pa
 	}
 
 	SseRequestRaw(gc, hc, req)
+	return nil
+}
+
+func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, url string, params any, headers map[string]string) error {
+	paramsBytes, err := dglogger.Json(params)
+	if err != nil {
+		dglogger.Errorf(ctx, "json marshal error, url: %s, params: %v, err: %v", url, params, err)
+		return err
+	}
+	dglogger.Infof(ctx, "sse post request, url: %s, params: %v", url, string(paramsBytes))
+
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(paramsBytes))
+	if err != nil {
+		dglogger.Errorf(ctx, "new sse request error, url: %s, params: %v, err: %v", url, params, err)
+		return err
+	}
+
+	if len(headers) > 0 {
+		for key, val := range headers {
+			req.Header.Set(key, val)
+		}
+	}
+
+	SseRequestRaw(gc, hc, req)
+	return nil
 }
 
 func SseRequestRaw(gc *gin.Context, hc *dghttp.DgHttpClient, req *http.Request) {
