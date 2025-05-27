@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+const sseDefaultSleepTime = time.Millisecond * 10
+
 type SseBody struct {
 	Event string `json:"event"`
 	Data  any    `json:"data"`
@@ -126,6 +128,6 @@ func SseRequestRaw(gc *gin.Context, hc *dghttp.DgHttpClient, req *http.Request) 
 			gc.Writer.Flush()
 		}
 
-		time.Sleep(time.Millisecond * 10)
+		time.Sleep(sseDefaultSleepTime)
 	}
 }
