@@ -14,6 +14,8 @@ import (
 
 const sseDefaultSleepTime = time.Millisecond * 10
 
+var DefaultSseHttpClient = dghttp.NewHttpClient(dghttp.Http2Transport, 24*60*60)
+
 type SseBody struct {
 	Event string `json:"event"`
 	Data  any    `json:"data"`
@@ -58,7 +60,7 @@ func SseMessage(messageChan chan *SseBody, event string, message any) {
 	}
 }
 
-func SseForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {
+func SseForward(gc *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
 	request, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
@@ -67,7 +69,7 @@ func SseForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, 
 	request.Header = gc.Request.Header
 	dghttp.WriteSseHeaders(request)
 
-	resp, err := hc.DoRequestRaw(ctx, request)
+	resp, err := DefaultSseHttpClient.DoRequestRaw(ctx, request)
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
@@ -76,8 +78,8 @@ func SseForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, 
 	WriteSseResponse(gc, resp)
 }
 
-func SseGet(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, url string, params map[string]string, headers map[string]string) error {
-	resp, err := hc.SseGet(ctx, url, params, headers)
+func SseGet(gc *gin.Context, ctx *dgctx.DgContext, url string, params map[string]string, headers map[string]string) error {
+	resp, err := DefaultSseHttpClient.SseGet(ctx, url, params, headers)
 	if err != nil {
 		return err
 	}
@@ -86,8 +88,8 @@ func SseGet(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, url 
 	return nil
 }
 
-func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, url string, params any, headers map[string]string) error {
-	resp, err := hc.SsePostJson(ctx, url, params, headers)
+func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, url string, params any, headers map[string]string) error {
+	resp, err := DefaultSseHttpClient.SsePostJson(ctx, url, params, headers)
 	if err != nil {
 		return err
 	}
