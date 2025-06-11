@@ -74,6 +74,8 @@ type MapRequest struct {
 	MP map[string]any
 }
 
+type EmptyRequest struct{}
+
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
