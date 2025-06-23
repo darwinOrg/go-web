@@ -44,7 +44,7 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 }
 
 var (
-	requestApis []*RequestApi
+	RequestApis []*RequestApi
 )
 
 type RequestApi struct {
@@ -249,7 +249,7 @@ func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt a
 }
 
 func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
-	requestApis = append(requestApis, &RequestApi{
+	RequestApis = append(RequestApis, &RequestApi{
 		Method:         method,
 		BasePath:       rh.BasePath(),
 		RelativePath:   rh.RelativePath,
@@ -260,5 +260,5 @@ func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 }
 
 func GetRequestApis() []*RequestApi {
-	return requestApis
+	return RequestApis
 }
