@@ -13,7 +13,6 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
-	"net/http"
 	"strconv"
 	"strings"
 )
@@ -263,22 +262,4 @@ func getIntValue(c *gin.Context, header string) int {
 	}
 	val, _ := strconv.Atoi(h)
 	return val
-}
-
-func AdapterStatusCode(code int) int {
-	if code >= http.StatusInternalServerError {
-		return http.StatusInternalServerError
-	} else {
-		return code
-	}
-}
-
-func WriteHeaders(c *gin.Context, headers map[string][]string) {
-	for k, v := range headers {
-		if len(v) == 0 || v[0] == "" {
-			c.Writer.Header().Del(k)
-			continue
-		}
-		c.Writer.Header()[k] = v
-	}
 }

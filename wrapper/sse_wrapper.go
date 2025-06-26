@@ -5,7 +5,6 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
-	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -101,9 +100,9 @@ func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, url string, params any, 
 func WriteSseResponse(gc *gin.Context, resp *http.Response) {
 	defer func() { _ = resp.Body.Close() }()
 
-	statusCode := utils.AdapterStatusCode(resp.StatusCode)
+	statusCode := adapterStatusCode(resp.StatusCode)
 	gc.Status(statusCode)
-	utils.WriteHeaders(gc, resp.Header)
+	writeHeaders(gc, resp.Header)
 	reader := bufio.NewReader(resp.Body)
 
 	for {
