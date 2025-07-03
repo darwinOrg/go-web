@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var candidateValidatorTags = []string{"remark", "json", "form", "label"}
+var candidateValidatorTags = []string{"title", "remark", "json", "form", "label"}
 
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

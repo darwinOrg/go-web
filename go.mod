@@ -3,14 +3,14 @@ module github.com/darwinOrg/go-web
 go 1.23.1
 
 require (
-	github.com/darwinOrg/go-common v0.1.91
+	github.com/darwinOrg/go-common v0.1.92
 	github.com/darwinOrg/go-httpclient v0.1.29
 	github.com/darwinOrg/go-logger v0.0.12
 	github.com/darwinOrg/go-monitor v0.0.9
 	github.com/darwinOrg/go-validator-ext v0.0.10
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/google/uuid v1.6.0
 )
 
