@@ -25,8 +25,6 @@ func SimpleSseStream(gc *gin.Context, messageChan chan *SseBody) {
 		msg, ok := <-messageChan
 		if ok {
 			SseEvent(gc, msg.Event, msg.Data)
-		} else {
-			SseDone(gc)
 		}
 		return ok
 	})
