@@ -77,7 +77,7 @@ func handleSSE(c *gin.Context) {
 		}
 	}()
 
-	wrapper.SimpleSseStream(c, messageChan)
+	wrapper.SimpleSseStream(c, messageChan, true)
 }
 
 type UserRequest struct {

@@ -20,11 +20,13 @@ type SseBody struct {
 	Data  any    `json:"data"`
 }
 
-func SimpleSseStream(gc *gin.Context, messageChan chan *SseBody) {
+func SimpleSseStream(gc *gin.Context, messageChan chan *SseBody, sendDoneEvent bool) {
 	SseStream(gc, func(w io.Writer) bool {
 		msg, ok := <-messageChan
 		if ok {
 			SseEvent(gc, msg.Event, msg.Data)
+		} else if sendDoneEvent {
+			SseDone(gc)
 		}
 		return ok
 	})
