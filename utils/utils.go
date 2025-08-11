@@ -7,9 +7,9 @@ import (
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
+	"github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -141,7 +141,7 @@ func GetDgContext(c *gin.Context) *dgctx.DgContext {
 }
 
 func BuildDgContext(c *gin.Context) *dgctx.DgContext {
-	return &dgctx.DgContext{
+	ctx := &dgctx.DgContext{
 		TraceId:       GetTraceId(c),
 		UserId:        GetUserId(c),
 		OpId:          getInt64Value(c, constants.OpId),
@@ -160,6 +160,12 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		Products:      GetProducts(c),
 		DepartmentIds: GetDepartmentIds(c),
 	}
+
+	if c.Request != nil {
+		ctx.SetInnerContext(c.Request.Context())
+	}
+
+	return ctx
 }
 
 func GetTraceId(c *gin.Context) string {
@@ -173,7 +179,7 @@ func GetTraceId(c *gin.Context) string {
 		return traceId
 	}
 
-	return uuid.NewString()
+	return utils.MustRandomLetter(32)
 }
 
 func GetUserId(c *gin.Context) int64 {

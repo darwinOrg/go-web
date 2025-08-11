@@ -10,14 +10,13 @@ func Monitor() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		path := c.Request.URL.Path
 		monitor.HttpServerCounter(path)
-		start := time.Now().UnixMilli()
+		start := time.Now()
 		c.Next()
 
-		cost := time.Now().UnixMilli() - start
 		e := "false"
 		if len(c.Errors) > 0 {
 			e = "true"
 		}
-		monitor.HttpServerDuration(path, e, cost)
+		monitor.HttpServerDuration(path, e, time.Since(start).Milliseconds())
 	}
 }
