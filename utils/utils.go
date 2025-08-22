@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	dgcoll "github.com/darwinOrg/go-common/collection"
-	"github.com/darwinOrg/go-common/constants"
-	dgctx "github.com/darwinOrg/go-common/context"
-	"github.com/darwinOrg/go-common/utils"
-	dglogger "github.com/darwinOrg/go-logger"
-	"github.com/gin-gonic/gin"
 	"io"
 	"mime"
 	"mime/multipart"
 	"strconv"
 	"strings"
+
+	dgcoll "github.com/darwinOrg/go-common/collection"
+	"github.com/darwinOrg/go-common/constants"
+	dgctx "github.com/darwinOrg/go-common/context"
+	dglogger "github.com/darwinOrg/go-logger"
+	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/otel/trace"
 )
 
 const DgContextKey = "DgContext"
@@ -161,6 +162,22 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		DepartmentIds: GetDepartmentIds(c),
 	}
 
+	// 从 Gin 的 Context 中获取 OpenTelemetry 的 Span
+	span := trace.SpanFromContext(c.Request.Context())
+	ctx.SpanId = span.SpanContext().SpanID().String()
+	spanTraceId := span.SpanContext().TraceID().String()
+
+	if ctx.TraceId != "" {
+		if ctx.TraceId != spanTraceId {
+			traceId, err := trace.TraceIDFromHex(ctx.TraceId)
+			if err == nil {
+				span.SpanContext().WithTraceID(traceId)
+			}
+		}
+	} else {
+		ctx.TraceId = spanTraceId
+	}
+
 	if c.Request != nil {
 		ctx.SetInnerContext(c.Request.Context())
 	}
@@ -179,7 +196,7 @@ func GetTraceId(c *gin.Context) string {
 		return traceId
 	}
 
-	return utils.MustRandomLetter(32)
+	return ""
 }
 
 func GetUserId(c *gin.Context) int64 {
@@ -250,6 +267,28 @@ func GetDepartmentIds(c *gin.Context) []int64 {
 		return dgcoll.SplitToIntsByComma[int64](departmentIds)
 	}
 	return []int64{}
+}
+
+func GetClientIP(c *gin.Context) string {
+	// 优先从 X-Forwarded-For 获取 IP
+	ip := c.Request.Header.Get("X-Forwarded-For")
+	if ip == "" || strings.Contains(ip, "127.0.0.1") {
+		// 如果为空或为本地地址，则尝试从 X-Real-IP 获取
+		ip = c.Request.Header.Get("X-real-ip")
+	}
+	if ip == "" {
+		// 如果仍为空，则使用 RemoteIP
+		ip = c.RemoteIP()
+	}
+	if ip == "" || ip == "127.0.0.1" {
+		// 如果仍为空或为本地地址，则使用 ClientIP
+		ip = c.ClientIP()
+	}
+	if ip == "" {
+		// 最后兜底为本地地址
+		ip = "127.0.0.1"
+	}
+	return ip
 }
 
 func getInt64Value(c *gin.Context, header string) int64 {

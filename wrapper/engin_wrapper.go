@@ -1,24 +1,33 @@
 package wrapper
 
 import (
+	"log"
+
 	dgsys "github.com/darwinOrg/go-common/sys"
 	"github.com/darwinOrg/go-web/middleware"
 	"github.com/gin-gonic/gin"
-	"log"
 )
 
-func DefaultEngine() *gin.Engine {
-	return NewEngine(middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler())
-}
+var DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler()}
 
-func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
+func init() {
 	if dgsys.IsProd() {
 		gin.SetMode(gin.ReleaseMode)
 	}
+}
+
+func DefaultEngine() *gin.Engine {
+	return NewEngine(DefaultMiddlewares...)
+}
+
+func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
 	e := gin.New()
 	e.UseH2C = true
 	e.MaxMultipartMemory = 8 << 20
 	e.Use(middlewares...)
+	if tracerMiddleware != nil {
+		e.Use(tracerMiddleware)
+	}
 	_ = e.SetTrustedProxies(nil)
 	e.HandleMethodNotAllowed = true
 	e.NoRoute(func(c *gin.Context) {

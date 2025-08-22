@@ -2,6 +2,12 @@ package wrapper
 
 import (
 	"encoding/json"
+	"fmt"
+	"go/types"
+	"net/http"
+	"strings"
+	"time"
+
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
@@ -12,10 +18,6 @@ import (
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	"go/types"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type LogLevel int
@@ -75,6 +77,8 @@ type MapRequest struct {
 }
 
 type EmptyRequest struct{}
+
+var emptyRequest = new(EmptyRequest)
 
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
@@ -197,6 +201,16 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
 
+		if Tracer != nil {
+			spanName := fmt.Sprintf("%s | %s", tracerServiceName, rh.RelativePath)
+			if rh.Remark != "" {
+				spanName += " | " + rh.Remark
+			}
+			ctxWithTrace, span := Tracer.Start(c.Request.Context(), spanName)
+			defer span.End()
+			c.Request = c.Request.WithContext(ctxWithTrace)
+		}
+
 		var rt any
 		req := new(T)
 		if err := c.ShouldBind(req); err != nil {
@@ -208,6 +222,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 				rt = result.SimpleFailByError(err)
 			}
 		} else {
+			Tracer.Start(c.Request.Context(), "")
 			rt = rh.BizHandler(c, ctx, req)
 		}
 
