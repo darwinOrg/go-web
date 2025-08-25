@@ -6,21 +6,28 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
-	dglogger "github.com/darwinOrg/go-logger"
+	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/gin-gonic/gin"
 )
 
 func HttpForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {
-	req, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
+	var (
+		request *http.Request
+		err     error
+	)
+	if DefaultSseHttpClient.EnableTracer && ctx.GetInnerContext() != nil {
+		dgotel.SetSpanAttributesByDgContext(ctx)
+		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
+	} else {
+		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
+	}
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
-	req.Header = gc.Request.Header
-	dglogger.Debugf(ctx, "raw request header: %v", req.Header)
-
-	resp, err := hc.DoRequestRaw(ctx, req)
+	request.Header = gc.Request.Header
+	resp, err := hc.DoRequestRaw(ctx, request)
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return

@@ -9,6 +9,7 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
+	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/gin-gonic/gin"
 )
 
@@ -61,7 +62,16 @@ func SseMessage(messageChan chan *SseBody, event string, message any) {
 }
 
 func SseForward(gc *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
-	request, err := http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
+	var (
+		request *http.Request
+		err     error
+	)
+	if DefaultSseHttpClient.EnableTracer && ctx.GetInnerContext() != nil {
+		dgotel.SetSpanAttributesByDgContext(ctx)
+		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
+	} else {
+		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
+	}
 	if err != nil {
 		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return

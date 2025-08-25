@@ -199,7 +199,6 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		if dgotel.Tracer != nil {
 			dgotel.SetSpanAttributesByDgContext(ctx)
-			c.Request = c.Request.WithContext(ctx.GetInnerContext())
 		}
 
 		var rt any
