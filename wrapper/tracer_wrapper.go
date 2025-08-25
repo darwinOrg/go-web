@@ -2,6 +2,7 @@ package wrapper
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -16,12 +17,11 @@ import (
 )
 
 var (
-	Tracer            trace.Tracer
-	tracerServiceName string
-	tracerMiddleware  gin.HandlerFunc
+	Tracer           trace.Tracer
+	tracerMiddleware gin.HandlerFunc
 )
 
-// InitTracer 初始化 OpenTelemetry 并配置 Jaeger 导出
+// InitTracer 初始化 OpenTelemetry 并配置导出
 func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error) {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
@@ -33,17 +33,17 @@ func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error
 
 	otel.SetTracerProvider(tp)
 
-	// 设置全局传播器（用于跨服务传递 TraceID 等）
 	otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(
 		propagation.TraceContext{},
 		propagation.Baggage{},
 	))
 
-	Tracer = otel.Tracer("gin-server")
-	tracerServiceName = serviceName
-	tracerMiddleware = otelgin.Middleware(serviceName)
+	Tracer = otel.Tracer(serviceName)
+	tracerMiddleware = otelgin.Middleware(serviceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
+		return fmt.Sprintf("%s %s", c.Request.URL.Path, c.Request.Method)
+	}))
 
-	// 返回一个关闭函数，用于优雅关闭 Tracer（比如 main结束时调用）
+	// 返回一个关闭函数，用于优雅关闭Tracer
 	return func() {
 		if err := tp.Shutdown(context.Background()); err != nil {
 			log.Printf("TracerProvider Shutdown Error: %v", err)

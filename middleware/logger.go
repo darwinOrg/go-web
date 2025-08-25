@@ -2,10 +2,11 @@ package middleware
 
 import (
 	"fmt"
+	"time"
+
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 // Logger instances a Logger middleware that will write the logs to gin.DefaultWriter.

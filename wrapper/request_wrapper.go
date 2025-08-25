@@ -2,7 +2,6 @@ package wrapper
 
 import (
 	"encoding/json"
-	"fmt"
 	"go/types"
 	"net/http"
 	"strings"
@@ -14,6 +13,7 @@ import (
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
+	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
@@ -70,10 +70,6 @@ type RequestHolder[T any, V any] struct {
 	BizHandler       HandlerFunc[T, V]
 	LogLevel         LogLevel
 	NotLogSQL        bool
-}
-
-type MapRequest struct {
-	MP map[string]any
 }
 
 type EmptyRequest struct{}
@@ -202,13 +198,8 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx.NotLogSQL = rh.NotLogSQL
 
 		if Tracer != nil {
-			spanName := fmt.Sprintf("%s | %s", tracerServiceName, rh.RelativePath)
-			if rh.Remark != "" {
-				spanName += " | " + rh.Remark
-			}
-			ctxWithTrace, span := Tracer.Start(c.Request.Context(), spanName)
-			defer span.End()
-			c.Request = c.Request.WithContext(ctxWithTrace)
+			c.Request = c.Request.WithContext(dghttp.SetSpanAttributesFromContext(ctx, c.Request.Context()))
+			ctx.SetInnerContext(c.Request.Context())
 		}
 
 		var rt any

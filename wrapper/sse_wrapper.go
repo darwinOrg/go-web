@@ -2,13 +2,14 @@ package wrapper
 
 import (
 	"bufio"
+	"io"
+	"net/http"
+	"time"
+
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	"github.com/gin-gonic/gin"
-	"io"
-	"net/http"
-	"time"
 )
 
 const sseDefaultSleepTime = time.Millisecond * 10

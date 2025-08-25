@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler()}
+var DefaultMiddlewares = []gin.HandlerFunc{middleware.TraceIdHandler(), middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler()}
 
 func init() {
 	if dgsys.IsProd() {

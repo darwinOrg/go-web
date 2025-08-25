@@ -1,12 +1,13 @@
 package wrapper
 
 import (
+	"net/http"
+
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func HttpForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {

@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"compress/gzip"
 	"fmt"
-	dgerr "github.com/darwinOrg/go-common/enums/error"
-	"github.com/darwinOrg/go-common/result"
 	"io"
 	"net/http"
+
+	dgerr "github.com/darwinOrg/go-common/enums/error"
+	"github.com/darwinOrg/go-common/result"
 
 	"github.com/gin-gonic/gin"
 )

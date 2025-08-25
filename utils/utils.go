@@ -13,9 +13,9 @@ import (
 	dgcoll "github.com/darwinOrg/go-common/collection"
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
+	"github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/trace"
 )
 
 const DgContextKey = "DgContext"
@@ -143,7 +143,7 @@ func GetDgContext(c *gin.Context) *dgctx.DgContext {
 
 func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 	ctx := &dgctx.DgContext{
-		TraceId:       GetTraceId(c),
+		TraceId:       GetOrGenerateTraceId(c),
 		UserId:        GetUserId(c),
 		OpId:          getInt64Value(c, constants.OpId),
 		RunAs:         getInt64Value(c, constants.RunAs),
@@ -162,30 +162,12 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		DepartmentIds: GetDepartmentIds(c),
 	}
 
-	// 从 Gin 的 Context 中获取 OpenTelemetry 的 Span
-	span := trace.SpanFromContext(c.Request.Context())
-	ctx.SpanId = span.SpanContext().SpanID().String()
-	spanTraceId := span.SpanContext().TraceID().String()
-
-	if ctx.TraceId != "" {
-		if ctx.TraceId != spanTraceId {
-			traceId, err := trace.TraceIDFromHex(ctx.TraceId)
-			if err == nil {
-				span.SpanContext().WithTraceID(traceId)
-			}
-		}
-	} else {
-		ctx.TraceId = spanTraceId
-	}
-
-	if c.Request != nil {
-		ctx.SetInnerContext(c.Request.Context())
-	}
+	ctx.SetInnerContext(c.Request.Context())
 
 	return ctx
 }
 
-func GetTraceId(c *gin.Context) string {
+func GetOrGenerateTraceId(c *gin.Context) string {
 	traceId := GetHeader(c, constants.TraceId)
 	if traceId != "" {
 		return traceId
@@ -193,10 +175,14 @@ func GetTraceId(c *gin.Context) string {
 
 	traceId = c.Query(constants.TraceId)
 	if traceId != "" {
+		c.Header(constants.TraceId, traceId)
 		return traceId
 	}
 
-	return ""
+	traceId = utils.MustRandomW3cTraceId()
+	c.Header(constants.TraceId, traceId)
+
+	return traceId
 }
 
 func GetUserId(c *gin.Context) int64 {

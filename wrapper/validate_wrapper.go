@@ -1,14 +1,15 @@
 package wrapper
 
 import (
+	"reflect"
+	"strings"
+
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator/v10"
-	"reflect"
-	"strings"
 )
 
-var candidateValidatorTags = []string{"title", "remark", "json", "form", "label"}
+var candidateValidatorTags = []string{"title", "remark", "json", "form", "label", "desc"}
 
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

@@ -1,9 +1,10 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/darwinOrg/go-monitor"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 func Monitor() gin.HandlerFunc {

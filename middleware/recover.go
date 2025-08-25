@@ -1,13 +1,14 @@
 package middleware
 
 import (
+	"net/http"
+
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func Recover() gin.HandlerFunc {
