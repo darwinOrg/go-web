@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HealthHandler() gin.HandlerFunc {
+func Health() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.RequestURI == "/health" {
 			ctx := utils.GetDgContext(c)

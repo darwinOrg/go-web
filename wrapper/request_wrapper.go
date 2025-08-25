@@ -13,8 +13,8 @@ import (
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
-	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
+	dgotel "github.com/darwinOrg/go-otel"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
@@ -197,9 +197,9 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
 
-		if Tracer != nil {
-			c.Request = c.Request.WithContext(dghttp.SetSpanAttributesFromContext(ctx, c.Request.Context()))
-			ctx.SetInnerContext(c.Request.Context())
+		if dgotel.Tracer != nil {
+			dgotel.SetSpanAttributesByDgContext(ctx)
+			c.Request = c.Request.WithContext(ctx.GetInnerContext())
 		}
 
 		var rt any
@@ -213,7 +213,6 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 				rt = result.SimpleFailByError(err)
 			}
 		} else {
-			Tracer.Start(c.Request.Context(), "")
 			rt = rh.BizHandler(c, ctx, req)
 		}
 

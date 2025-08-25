@@ -54,7 +54,7 @@ func Secure() gin.HandlerFunc {
 	}
 }
 
-func CorrectHeaderHandler() gin.HandlerFunc {
+func CorrectHeader() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		newHeader := make(map[string][]string)
 

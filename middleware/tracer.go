@@ -1,13 +1,21 @@
 package middleware
 
 import (
+	"fmt"
+
 	"github.com/darwinOrg/go-common/constants"
+	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
+	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel/trace"
 )
 
-func TraceIdHandler() gin.HandlerFunc {
+func TraceId() gin.HandlerFunc {
+	if dgotel.Tracer == nil {
+		return Empty()
+	}
+
 	return func(c *gin.Context) {
 		spanContext := trace.SpanContextFromContext(c.Request.Context())
 		hasParentSpan := spanContext.IsValid() && spanContext.HasTraceID()
@@ -46,4 +54,14 @@ func TraceIdHandler() gin.HandlerFunc {
 
 		c.Next()
 	}
+}
+
+func TracerWithServiceName(serviceName string) gin.HandlerFunc {
+	if dgotel.Tracer == nil {
+		return Empty()
+	}
+
+	return otelgin.Middleware(serviceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
+		return fmt.Sprintf("%s %s", c.Request.URL.Path, c.Request.Method)
+	}))
 }

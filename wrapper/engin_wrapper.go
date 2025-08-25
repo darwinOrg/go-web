@@ -8,7 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var DefaultMiddlewares = []gin.HandlerFunc{middleware.TraceIdHandler(), middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.HealthHandler()}
+var DefaultMiddlewares = []gin.HandlerFunc{middleware.TraceId(), middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health()}
 
 func init() {
 	if dgsys.IsProd() {
@@ -25,9 +25,6 @@ func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
 	e.UseH2C = true
 	e.MaxMultipartMemory = 8 << 20
 	e.Use(middlewares...)
-	if tracerMiddleware != nil {
-		e.Use(tracerMiddleware)
-	}
 	_ = e.SetTrustedProxies(nil)
 	e.HandleMethodNotAllowed = true
 	e.NoRoute(func(c *gin.Context) {
