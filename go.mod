@@ -3,7 +3,7 @@ module github.com/darwinOrg/go-web
 go 1.23.1
 
 require (
-	github.com/darwinOrg/go-common v0.2.7
+	github.com/darwinOrg/go-common v0.2.8
 	github.com/darwinOrg/go-httpclient v0.1.51
 	github.com/darwinOrg/go-logger v0.0.14
 	github.com/darwinOrg/go-monitor v0.0.9
