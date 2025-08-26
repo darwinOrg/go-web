@@ -10,11 +10,12 @@ import (
 )
 
 func TraceId() gin.HandlerFunc {
-	if dgotel.Tracer == nil {
-		return Empty()
-	}
-
 	return func(c *gin.Context) {
+		if dgotel.Tracer == nil {
+			c.Next()
+			return
+		}
+
 		spanContext := trace.SpanContextFromContext(c.Request.Context())
 		hasParentSpan := spanContext.IsValid() && spanContext.HasTraceID()
 
@@ -55,10 +56,6 @@ func TraceId() gin.HandlerFunc {
 }
 
 func Tracer(serviceName string) gin.HandlerFunc {
-	if dgotel.Tracer == nil {
-		return Empty()
-	}
-
 	return otelgin.Middleware(serviceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
 		return c.Request.URL.Path
 	}))
