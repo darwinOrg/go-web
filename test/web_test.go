@@ -9,7 +9,6 @@ import (
 	dghttp "github.com/darwinOrg/go-httpclient"
 	"github.com/darwinOrg/go-monitor"
 	dgotel "github.com/darwinOrg/go-otel"
-	"github.com/darwinOrg/go-web/middleware"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
@@ -24,7 +23,6 @@ func TestGet(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/public"),
@@ -46,7 +44,6 @@ func TestPost(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试post接口",
 		RouterGroup:  engine.Group("/public"),
@@ -79,7 +76,6 @@ func TestSSE(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Get(&wrapper.RequestHolder[result.Void, *result.Result[*result.Void]]{
 		Remark:       "测试sse接口",
 		RouterGroup:  engine.Group("/public"),
