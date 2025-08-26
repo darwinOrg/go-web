@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"github.com/darwinOrg/go-common/constants"
-	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
@@ -11,11 +10,6 @@ import (
 
 func TraceId() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if dgotel.Tracer == nil {
-			c.Next()
-			return
-		}
-
 		spanContext := trace.SpanContextFromContext(c.Request.Context())
 		hasParentSpan := spanContext.IsValid() && spanContext.HasTraceID()
 

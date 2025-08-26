@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var DefaultMiddlewares = []gin.HandlerFunc{middleware.TraceId(), middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health()}
+var DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health()}
 
 func init() {
 	if dgsys.IsProd() {
@@ -20,7 +20,7 @@ func init() {
 func DefaultEngine() *gin.Engine {
 	e := NewEngine(DefaultMiddlewares...)
 	if dgotel.Tracer != nil {
-		e.Use(middleware.Tracer(dgotel.GetTracerServiceName()))
+		e.Use(middleware.TraceId(), middleware.Tracer(dgotel.GetTracerServiceName()))
 	}
 
 	return e
