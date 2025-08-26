@@ -66,8 +66,7 @@ func SseForward(gc *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
 		request *http.Request
 		err     error
 	)
-	if DefaultSseHttpClient.EnableTracer && ctx.GetInnerContext() != nil {
-		dgotel.SetSpanAttributesByDgContext(ctx)
+	if dgotel.Tracer != nil && DefaultSseHttpClient.EnableTracer && ctx.GetInnerContext() != nil {
 		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
 	} else {
 		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)

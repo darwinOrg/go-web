@@ -3,8 +3,14 @@ package middleware
 import (
 	"time"
 
+	"github.com/darwinOrg/go-common/utils"
 	"github.com/darwinOrg/go-monitor"
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	falseString = "false"
+	trueString  = "true"
 )
 
 func Monitor() gin.HandlerFunc {
@@ -13,11 +19,6 @@ func Monitor() gin.HandlerFunc {
 		monitor.HttpServerCounter(path)
 		start := time.Now()
 		c.Next()
-
-		e := "false"
-		if len(c.Errors) > 0 {
-			e = "true"
-		}
-		monitor.HttpServerDuration(path, e, time.Since(start).Milliseconds())
+		monitor.HttpServerDuration(path, utils.IfReturn(len(c.Errors) > 0, trueString, falseString), time.Since(start).Milliseconds())
 	}
 }

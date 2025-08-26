@@ -24,7 +24,7 @@ func TestGet(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.TracerWithServiceName("test-service"))
+	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/public"),
@@ -46,18 +46,27 @@ func TestPost(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.TracerWithServiceName("test-service"))
+	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试post接口",
 		RouterGroup:  engine.Group("/public"),
 		RelativePath: "post",
 		NonLogin:     true,
 		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
-			_, _ = dghttp.Client11.DoGet(ctx, "https://e.globalpand.cn/zhaop/public/v1/c/job/cities", nil, nil)
+			_, _ = dghttp.Client11.DoGet(ctx, "https://www.baidu.com",
+				map[string]string{
+					"param1": "param1 value",
+					"param2": "param2 value",
+				},
+				map[string]string{
+					"header1": "header1 value",
+					"header2": "header2 value",
+				})
 
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
 			}
+
 			return result.Success(resp)
 		},
 	})
@@ -70,7 +79,7 @@ func TestSSE(t *testing.T) {
 	defer cleanup()
 
 	engine := wrapper.DefaultEngine()
-	engine.Use(middleware.TracerWithServiceName("test-service"))
+	engine.Use(middleware.Tracer("test-service"))
 	wrapper.Get(&wrapper.RequestHolder[result.Void, *result.Result[*result.Void]]{
 		Remark:       "测试sse接口",
 		RouterGroup:  engine.Group("/public"),
@@ -98,6 +107,9 @@ func initTracer() func() {
 	if err != nil {
 		panic(err)
 	}
+
+	dghttp.Client11 = dghttp.NewHttpClient(dghttp.NewOtelHttpTransport(dghttp.HttpTransport), 60)
+	dghttp.Client11.EnableTracer = true
 
 	return cleanup
 }

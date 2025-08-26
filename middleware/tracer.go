@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/darwinOrg/go-common/constants"
 	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/darwinOrg/go-web/utils"
@@ -56,12 +54,12 @@ func TraceId() gin.HandlerFunc {
 	}
 }
 
-func TracerWithServiceName(serviceName string) gin.HandlerFunc {
+func Tracer(serviceName string) gin.HandlerFunc {
 	if dgotel.Tracer == nil {
 		return Empty()
 	}
 
 	return otelgin.Middleware(serviceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
-		return fmt.Sprintf("%s %s", c.Request.URL.Path, c.Request.Method)
+		return c.Request.URL.Path
 	}))
 }

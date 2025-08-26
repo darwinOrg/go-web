@@ -13,11 +13,14 @@ import (
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
+	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
 	dgotel "github.com/darwinOrg/go-otel"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type LogLevel int
@@ -198,7 +201,16 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx.NotLogSQL = rh.NotLogSQL
 
 		if dgotel.Tracer != nil {
-			dgotel.SetSpanAttributesByDgContext(ctx)
+			if span := trace.SpanFromContext(c.Request.Context()); span.SpanContext().IsValid() {
+				attrs := dghttp.ExtractOtelAttributesFromRequest(c.Request)
+				if len(attrs) > 0 {
+					span.SetAttributes(attrs...)
+				}
+
+				defer func() {
+					span.SetAttributes(semconv.HTTPResponseContentLength(c.Writer.Size()))
+				}()
+			}
 		}
 
 		var rt any
