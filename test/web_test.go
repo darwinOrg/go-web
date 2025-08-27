@@ -93,8 +93,9 @@ func TestSSE(t *testing.T) {
 }
 
 func initTracer() func() {
+	ctx := context.Background()
 	exporter, err := otlptracehttp.New(
-		context.Background(),
+		ctx,
 		otlptracehttp.WithEndpoint("localhost:4318"),
 		otlptracehttp.WithInsecure(),
 	)
@@ -102,7 +103,7 @@ func initTracer() func() {
 		panic(err)
 	}
 
-	cleanup := dgotel.InitTracer(context.Background(), "test-service", exporter)
+	cleanup := dgotel.InitTracer(ctx, "test-service", exporter)
 	dghttp.Client11 = dghttp.NewHttpClient(dghttp.NewOtelHttpTransport(dghttp.HttpTransport), 60)
 	dghttp.Client11.EnableTracer = true
 
