@@ -198,9 +198,8 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
-		ctx.EnableTracer = rh.EnableTracer
-
-		if rh.EnableTracer && dgotel.Tracer != nil {
+		ctx.EnableTracer = rh.EnableTracer && dgotel.Tracer != nil
+		if ctx.EnableTracer {
 			if span := trace.SpanFromContext(c.Request.Context()); span.SpanContext().IsValid() {
 				attrs := dghttp.ExtractOtelAttributesFromRequest(c.Request)
 				if len(attrs) > 0 {
