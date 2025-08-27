@@ -91,12 +91,16 @@ func Post[T any, V any](rh *RequestHolder[T, V]) {
 }
 
 func BuildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
-	handlersChain := []gin.HandlerFunc{LoginHandler(rh), CheckProductHandler(rh), CheckRolesHandler(rh), CheckProfileHandler(), BizHandler(rh)}
-
-	if len(rh.PreHandlersChain) > 0 {
-		return dgcoll.MergeToList(rh.PreHandlersChain, handlersChain)
+	var handlersChain []gin.HandlerFunc
+	if rh.EnableTracer && dgotel.Tracer != nil && TracerMiddleware != nil {
+		handlersChain = append(handlersChain, TracerMiddleware)
 	}
 
+	if len(rh.PreHandlersChain) > 0 {
+		handlersChain = append(handlersChain, rh.PreHandlersChain...)
+	}
+
+	handlersChain = append(handlersChain, LoginHandler(rh), CheckProductHandler(rh), CheckRolesHandler(rh), CheckProfileHandler(), BizHandler(rh))
 	return handlersChain
 }
 

@@ -28,6 +28,7 @@ func TestGet(t *testing.T) {
 		RouterGroup:  engine.Group("/public"),
 		RelativePath: "get",
 		NonLogin:     true,
+		EnableTracer: true,
 		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *wrapper.EmptyRequest) *result.Result[*UserResponse] {
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
@@ -49,6 +50,7 @@ func TestPost(t *testing.T) {
 		RouterGroup:  engine.Group("/public"),
 		RelativePath: "post",
 		NonLogin:     true,
+		EnableTracer: true,
 		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
 			_, _ = dghttp.Client11.DoGet(ctx, "https://www.baidu.com",
 				map[string]string{
@@ -81,6 +83,7 @@ func TestSSE(t *testing.T) {
 		RouterGroup:  engine.Group("/public"),
 		RelativePath: "sse",
 		NonLogin:     true,
+		EnableTracer: true,
 		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *result.Void) *result.Result[*result.Void] {
 			handleSSE(gc)
 			return result.SimpleSuccess()
