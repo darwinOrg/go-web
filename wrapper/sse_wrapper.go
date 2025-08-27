@@ -9,7 +9,6 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
-	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/gin-gonic/gin"
 )
 
@@ -66,7 +65,7 @@ func SseForward(gc *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
 		request *http.Request
 		err     error
 	)
-	if dgotel.Tracer != nil && DefaultSseHttpClient.EnableTracer && ctx.GetInnerContext() != nil {
+	if ctx.GetInnerContext() != nil {
 		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
 	} else {
 		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)

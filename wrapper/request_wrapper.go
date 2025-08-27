@@ -48,9 +48,7 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 	returnResultPostProcessors = append(returnResultPostProcessors, processor)
 }
 
-var (
-	RequestApis []*RequestApi
-)
+var RequestApis []*RequestApi
 
 type RequestApi struct {
 	Method         string
@@ -73,6 +71,7 @@ type RequestHolder[T any, V any] struct {
 	BizHandler       HandlerFunc[T, V]
 	LogLevel         LogLevel
 	NotLogSQL        bool
+	EnableTracer     bool
 }
 
 type EmptyRequest struct{}
@@ -199,8 +198,9 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
+		ctx.EnableTracer = rh.EnableTracer
 
-		if dgotel.Tracer != nil {
+		if rh.EnableTracer && dgotel.Tracer != nil {
 			if span := trace.SpanFromContext(c.Request.Context()); span.SpanContext().IsValid() {
 				attrs := dghttp.ExtractOtelAttributesFromRequest(c.Request)
 				if len(attrs) > 0 {
