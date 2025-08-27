@@ -102,11 +102,7 @@ func initTracer() func() {
 		panic(err)
 	}
 
-	cleanup, err := dgotel.InitTracer("test-service", exporter)
-	if err != nil {
-		panic(err)
-	}
-
+	cleanup := dgotel.InitTracer(context.Background(), "test-service", exporter)
 	dghttp.Client11 = dghttp.NewHttpClient(dghttp.NewOtelHttpTransport(dghttp.HttpTransport), 60)
 	dghttp.Client11.EnableTracer = true
 
