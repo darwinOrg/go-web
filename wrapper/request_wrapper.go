@@ -13,14 +13,10 @@ import (
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
-	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
-	dgotel "github.com/darwinOrg/go-otel"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
-	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
-	"go.opentelemetry.io/otel/trace"
 )
 
 type LogLevel int
@@ -92,10 +88,6 @@ func Post[T any, V any](rh *RequestHolder[T, V]) {
 
 func BuildHandlersChain[T any, V any](rh *RequestHolder[T, V]) gin.HandlersChain {
 	var handlersChain []gin.HandlerFunc
-	if rh.EnableTracer && dgotel.Tracer != nil && TracerMiddleware != nil {
-		handlersChain = append(handlersChain, TracerMiddleware)
-	}
-
 	if len(rh.PreHandlersChain) > 0 {
 		handlersChain = append(handlersChain, rh.PreHandlersChain...)
 	}
@@ -202,19 +194,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		ctx.NotLogSQL = rh.NotLogSQL
-		ctx.EnableTracer = rh.EnableTracer && dgotel.Tracer != nil
-		if ctx.EnableTracer {
-			if span := trace.SpanFromContext(c.Request.Context()); span.SpanContext().IsValid() {
-				attrs := dghttp.ExtractOtelAttributesFromRequest(c.Request)
-				if len(attrs) > 0 {
-					span.SetAttributes(attrs...)
-				}
-
-				defer func() {
-					span.SetAttributes(semconv.HTTPResponseContentLength(c.Writer.Size()))
-				}()
-			}
-		}
+		ctx.EnableTracer = rh.EnableTracer
 
 		var rt any
 		req := new(T)

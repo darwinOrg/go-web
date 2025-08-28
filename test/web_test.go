@@ -1,27 +1,21 @@
 package test
 
 import (
-	"context"
 	"fmt"
+
+	"testing"
+	"time"
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	"github.com/darwinOrg/go-monitor"
-	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-
-	"testing"
-	"time"
 )
 
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
-	cleanup := initTracer()
-	defer cleanup()
-
 	engine := wrapper.DefaultEngine()
 	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试get接口",
@@ -41,9 +35,6 @@ func TestGet(t *testing.T) {
 
 func TestPost(t *testing.T) {
 	monitor.Start("test", 19002)
-	cleanup := initTracer()
-	defer cleanup()
-
 	engine := wrapper.DefaultEngine()
 	wrapper.Post(&wrapper.RequestHolder[UserRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试post接口",
@@ -74,9 +65,6 @@ func TestPost(t *testing.T) {
 
 func TestSSE(t *testing.T) {
 	monitor.Start("test", 19002)
-	cleanup := initTracer()
-	defer cleanup()
-
 	engine := wrapper.DefaultEngine()
 	wrapper.Get(&wrapper.RequestHolder[result.Void, *result.Result[*result.Void]]{
 		Remark:       "测试sse接口",
@@ -90,24 +78,6 @@ func TestSSE(t *testing.T) {
 		},
 	})
 	_ = engine.Run(fmt.Sprintf(":%d", 8080))
-}
-
-func initTracer() func() {
-	ctx := context.Background()
-	exporter, err := otlptracehttp.New(
-		ctx,
-		otlptracehttp.WithEndpoint("localhost:4318"),
-		otlptracehttp.WithInsecure(),
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	cleanup := dgotel.InitTracer(ctx, "test-service", exporter)
-	dghttp.Client11 = dghttp.NewHttpClient(dghttp.NewOtelHttpTransport(dghttp.HttpTransport), 60)
-	dghttp.Client11.EnableTracer = true
-
-	return cleanup
 }
 
 func handleSSE(c *gin.Context) {

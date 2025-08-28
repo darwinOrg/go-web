@@ -4,14 +4,12 @@ import (
 	"log"
 
 	dgsys "github.com/darwinOrg/go-common/sys"
-	dgotel "github.com/darwinOrg/go-otel"
 	"github.com/darwinOrg/go-web/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 var (
 	DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health()}
-	TracerMiddleware   gin.HandlerFunc
 )
 
 func init() {
@@ -21,13 +19,7 @@ func init() {
 }
 
 func DefaultEngine() *gin.Engine {
-	e := NewEngine(DefaultMiddlewares...)
-	if dgotel.Tracer != nil {
-		e.Use(middleware.TraceId())
-		TracerMiddleware = middleware.Tracer(dgotel.GetTracerServiceName())
-	}
-
-	return e
+	return NewEngine(DefaultMiddlewares...)
 }
 
 func NewEngine(middlewares ...gin.HandlerFunc) *gin.Engine {
