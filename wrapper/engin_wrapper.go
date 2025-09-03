@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health()}
+	DefaultMiddlewares = []gin.HandlerFunc{middleware.Recover(), middleware.Cors(), middleware.Monitor(), middleware.Health(), middleware.CopyBody()}
 )
 
 func init() {

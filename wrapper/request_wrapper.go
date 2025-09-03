@@ -44,6 +44,16 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 	returnResultPostProcessors = append(returnResultPostProcessors, processor)
 }
 
+var DefaultApiTimeout = 10 * time.Second
+
+type ApiTimeoutProcessor func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration)
+
+var apiTimeoutProcessors []ApiTimeoutProcessor
+
+func RegisterApiTimeoutProcessor(processor ApiTimeoutProcessor) {
+	apiTimeoutProcessors = append(apiTimeoutProcessors, processor)
+}
+
 var RequestApis []*RequestApi
 
 type RequestApi struct {
@@ -68,11 +78,10 @@ type RequestHolder[T any, V any] struct {
 	LogLevel         LogLevel
 	NotLogSQL        bool
 	EnableTracer     bool
+	Timeout          time.Duration
 }
 
 type EmptyRequest struct{}
-
-var emptyRequest = new(EmptyRequest)
 
 type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
@@ -105,7 +114,7 @@ func LoginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		if ctx.UserId == 0 {
-			dglogger.Warnf(ctx, "not login in")
+			dglogger.Warn(ctx, "not login in")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NOT_LOGIN_IN))
 			return
 		}
@@ -142,7 +151,7 @@ func CheckRolesHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		ctx := utils.GetDgContext(c)
 		if ctx.Roles == "" {
-			dglogger.Warnf(ctx, "has no roles")
+			dglogger.Warn(ctx, "has no roles")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
 			return
 		}
@@ -150,7 +159,7 @@ func CheckRolesHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		roles := strings.Split(ctx.Roles, ",")
 		dgcoll.Intersection(roles, rh.AllowRoles)
 		if !dgcoll.ContainsAny(roles, rh.AllowRoles) {
-			dglogger.Warnf(ctx, "has no allowed roles")
+			dglogger.Warn(ctx, "has no allowed roles")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
 			return
 		}
@@ -168,14 +177,14 @@ func CheckProductHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc 
 
 		ctx := utils.GetDgContext(c)
 		if len(ctx.Products) == 0 {
-			dglogger.Warnf(ctx, "has no products")
+			dglogger.Warn(ctx, "has no products")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
 			return
 		}
 
 		intersectionProducts := dgcoll.Intersection(ctx.Products, rh.AllowProducts)
 		if len(intersectionProducts) == 0 {
-			dglogger.Warnf(ctx, "has no allowed products")
+			dglogger.Warn(ctx, "has no allowed products")
 			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[*result.Void](dgerr.NO_PERMISSION))
 			return
 		}
@@ -216,7 +225,16 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 			}
 		}
 
-		printBizHandlerLog(c, ctx, req, rt, start, rh.LogLevel)
+		cost := time.Since(start)
+		if rh.Timeout > 0 && cost > rh.Timeout && len(apiTimeoutProcessors) > 0 {
+			for _, apiTimeoutProcessor := range apiTimeoutProcessors {
+				apiTimeoutProcessor(ctx, c.Request.URL.String(), rh.Timeout, cost)
+			}
+		}
+
+		if rh.LogLevel != LOG_LEVEL_NONE {
+			printBizHandlerLog(c, ctx, req, rt, cost, rh.LogLevel)
+		}
 
 		if !c.Writer.Written() {
 			c.JSON(http.StatusOK, rt)
@@ -226,24 +244,19 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 	}
 }
 
-func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, start time.Time, ll LogLevel) {
-	if ll == LOG_LEVEL_NONE {
-		return
-	}
-
+func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, cost time.Duration, ll LogLevel) {
 	ctxJson, _ := json.Marshal(ctx)
-	latency := time.Now().Sub(start)
 
 	if ll == LOG_LEVEL_ALL {
 		rpBytes, _ := dglogger.Json(rp)
 		rtBytes, _ := dglogger.Json(rt)
-		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, latency)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, cost)
 	} else if ll == LOG_LEVEL_PARAM {
 		rpBytes, _ := dglogger.Json(rp)
-		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, latency)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, cost)
 	} else if ll == LOG_LEVEL_RETURN {
 		rtBytes, _ := dglogger.Json(rt)
-		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, latency)
+		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, cost)
 	}
 }
 

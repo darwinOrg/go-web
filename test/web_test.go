@@ -9,6 +9,7 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
+	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-monitor"
 	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
@@ -17,12 +18,16 @@ import (
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
 	engine := wrapper.DefaultEngine()
+	wrapper.RegisterApiTimeoutProcessor(func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration) {
+		dglogger.Warnf(ctx, "请求超时, url: %s, timeout: %v, cost: %v", url, timeout, cost)
+	})
 	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
 		Remark:       "测试get接口",
 		RouterGroup:  engine.Group("/public"),
 		RelativePath: "get",
 		NonLogin:     true,
 		EnableTracer: true,
+		Timeout:      time.Second,
 		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *wrapper.EmptyRequest) *result.Result[*UserResponse] {
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
@@ -30,7 +35,7 @@ func TestGet(t *testing.T) {
 			return result.Success(resp)
 		},
 	})
-	_ = engine.Run(fmt.Sprintf(":%d", 8081))
+	_ = engine.Run(fmt.Sprintf(":%d", 8080))
 }
 
 func TestPost(t *testing.T) {

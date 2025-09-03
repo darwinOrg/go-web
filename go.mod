@@ -4,9 +4,9 @@ go 1.23.1
 
 require (
 	github.com/darwinOrg/go-common v0.2.9
-	github.com/darwinOrg/go-httpclient v0.1.55
+	github.com/darwinOrg/go-httpclient v0.1.58
 	github.com/darwinOrg/go-logger v0.0.14
-	github.com/darwinOrg/go-monitor v0.0.9
+	github.com/darwinOrg/go-monitor v0.0.10
 	github.com/darwinOrg/go-validator-ext v0.0.11
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.10.1
@@ -15,11 +15,12 @@ require (
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bytedance/sonic v1.14.0 // indirect
+	github.com/bytedance/gopkg v0.1.3 // indirect
+	github.com/bytedance/sonic v1.14.1 // indirect
 	github.com/bytedance/sonic/loader v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.6 // indirect
-	github.com/gabriel-vasile/mimetype v1.4.9 // indirect
+	github.com/gabriel-vasile/mimetype v1.4.10 // indirect
 	github.com/gin-contrib/sse v1.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
