@@ -46,7 +46,7 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 
 var DefaultSlowThreshold = 10 * time.Second
 
-type SlowThresholdProcessor func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration)
+type SlowThresholdProcessor func(ctx *dgctx.DgContext, url string, slowThreshold, cost time.Duration)
 
 var slowThresholdProcessors []SlowThresholdProcessor
 
