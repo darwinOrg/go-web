@@ -46,7 +46,7 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 
 var DefaultSlowThreshold = 10 * time.Second
 
-type SlowThresholdProcessor func(ctx *dgctx.DgContext, url, remark string, slowThreshold, cost time.Duration)
+type SlowThresholdProcessor func(ctx *dgctx.DgContext, url, remark string, req any, slowThreshold, cost time.Duration)
 
 var slowThresholdProcessors []SlowThresholdProcessor
 
@@ -227,8 +227,8 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		cost := time.Since(start)
 		if rh.SlowThreshold > 0 && cost > rh.SlowThreshold && len(slowThresholdProcessors) > 0 {
-			for _, apiTimeoutProcessor := range slowThresholdProcessors {
-				apiTimeoutProcessor(ctx, c.Request.URL.String(), rh.Remark, rh.SlowThreshold, cost)
+			for _, slowThresholdProcessor := range slowThresholdProcessors {
+				slowThresholdProcessor(ctx, c.Request.URL.String(), rh.Remark, req, rh.SlowThreshold, cost)
 			}
 		}
 
