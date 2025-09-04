@@ -44,14 +44,14 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 	returnResultPostProcessors = append(returnResultPostProcessors, processor)
 }
 
-var DefaultApiTimeout = 10 * time.Second
+var DefaultSlowThreshold = 10 * time.Second
 
-type ApiTimeoutProcessor func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration)
+type SlowThresholdProcessor func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration)
 
-var apiTimeoutProcessors []ApiTimeoutProcessor
+var slowThresholdProcessors []SlowThresholdProcessor
 
-func RegisterApiTimeoutProcessor(processor ApiTimeoutProcessor) {
-	apiTimeoutProcessors = append(apiTimeoutProcessors, processor)
+func RegisterSlowThresholdProcessor(processor SlowThresholdProcessor) {
+	slowThresholdProcessors = append(slowThresholdProcessors, processor)
 }
 
 var RequestApis []*RequestApi
@@ -78,7 +78,7 @@ type RequestHolder[T any, V any] struct {
 	LogLevel         LogLevel
 	NotLogSQL        bool
 	EnableTracer     bool
-	Timeout          time.Duration
+	SlowThreshold    time.Duration
 }
 
 type EmptyRequest struct{}
@@ -226,9 +226,9 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		}
 
 		cost := time.Since(start)
-		if rh.Timeout > 0 && cost > rh.Timeout && len(apiTimeoutProcessors) > 0 {
-			for _, apiTimeoutProcessor := range apiTimeoutProcessors {
-				apiTimeoutProcessor(ctx, c.Request.URL.String(), rh.Timeout, cost)
+		if rh.SlowThreshold > 0 && cost > rh.SlowThreshold && len(slowThresholdProcessors) > 0 {
+			for _, apiTimeoutProcessor := range slowThresholdProcessors {
+				apiTimeoutProcessor(ctx, c.Request.URL.String(), rh.SlowThreshold, cost)
 			}
 		}
 
