@@ -26,6 +26,8 @@ var AllowHeaders = []string{
 	constants.CompanyId,
 	constants.Product,
 	constants.DepartmentIds,
+	constants.Source,
+	constants.Since,
 
 	"device-id",
 	"hardware",

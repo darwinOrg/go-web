@@ -160,6 +160,8 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		Product:       GetProduct(c),
 		Products:      GetProducts(c),
 		DepartmentIds: GetDepartmentIds(c),
+		Source:        GetSource(c),
+		Since:         GetSince(c),
 	}
 
 	ctx.SetInnerContext(c.Request.Context())
@@ -190,53 +192,24 @@ func GetUserId(c *gin.Context) int64 {
 }
 
 func GetToken(c *gin.Context) string {
-	token := GetHeader(c, constants.Token)
-	if len(token) == 0 {
-		token = c.Query(constants.Token)
-	}
-	return token
+	return GetHeaderOrPath(c, constants.Token)
 }
 
 func GetPlatform(c *gin.Context) string {
-	platform := GetHeader(c, constants.Platform)
-	if len(platform) == 0 {
-		platform = c.Query(constants.Platform)
-	}
-	return platform
+	return GetHeaderOrPath(c, constants.Platform)
 }
 
 func GetShareToken(c *gin.Context) string {
-	token := GetHeader(c, constants.ShareToken)
-	if len(token) == 0 {
-		token = c.Query(constants.ShareToken)
-	}
-	return token
+	return GetHeaderOrPath(c, constants.ShareToken)
 }
 
 func GetProduct(c *gin.Context) int {
-	product := GetHeader(c, constants.Product)
-	if len(product) == 0 {
-		product = c.Query(constants.Product)
-	}
+	product := GetHeaderOrPath(c, constants.Product)
 	if len(product) == 0 {
 		return 0
 	}
 	val, _ := strconv.Atoi(product)
 	return val
-}
-
-func GetHeader(c *gin.Context, key string) string {
-	header := c.GetHeader(key)
-	if header != "" {
-		return header
-	}
-
-	headers := c.Request.Header[key]
-	if len(headers) > 0 {
-		return headers[0]
-	}
-
-	return ""
 }
 
 func GetProducts(c *gin.Context) []int {
@@ -253,6 +226,14 @@ func GetDepartmentIds(c *gin.Context) []int64 {
 		return dgcoll.SplitToIntsByComma[int64](departmentIds)
 	}
 	return []int64{}
+}
+
+func GetSource(c *gin.Context) string {
+	return GetHeader(c, constants.Source)
+}
+
+func GetSince(c *gin.Context) int64 {
+	return getInt64Value(c, constants.Since)
 }
 
 func GetClientIP(c *gin.Context) string {
@@ -275,6 +256,28 @@ func GetClientIP(c *gin.Context) string {
 		ip = "127.0.0.1"
 	}
 	return ip
+}
+
+func GetHeader(c *gin.Context, key string) string {
+	header := c.GetHeader(key)
+	if header != "" {
+		return header
+	}
+
+	headers := c.Request.Header[key]
+	if len(headers) > 0 {
+		return headers[0]
+	}
+
+	return ""
+}
+
+func GetHeaderOrPath(c *gin.Context, key string) string {
+	val := GetHeader(c, key)
+	if len(val) == 0 {
+		val = c.Query(key)
+	}
+	return val
 }
 
 func getInt64Value(c *gin.Context, header string) int64 {
