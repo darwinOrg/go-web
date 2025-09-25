@@ -8,6 +8,7 @@ import (
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
+	"github.com/darwinOrg/go-common/utils"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/darwinOrg/go-monitor"
@@ -18,8 +19,8 @@ import (
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
 	engine := wrapper.DefaultEngine()
-	wrapper.RegisterSlowThresholdProcessor(func(ctx *dgctx.DgContext, url string, timeout, cost time.Duration) {
-		dglogger.Warnf(ctx, "请求超时, url: %s, timeout: %v, cost: %v", url, timeout, cost)
+	wrapper.RegisterSlowThresholdProcessor(func(ctx *dgctx.DgContext, url, remark string, req any, timeout, cost time.Duration) {
+		dglogger.Warnf(ctx, "请求超时, url: %s, remark: %s, req: %s, timeout: %v, cost: %v", url, remark, utils.MustConvertBeanToJsonString(req), timeout, cost)
 	})
 	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
 		Remark:        "测试get接口",
