@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/darwinOrg/go-common v0.2.16
-	github.com/darwinOrg/go-httpclient v0.1.61
+	github.com/darwinOrg/go-httpclient v0.1.62
 	github.com/darwinOrg/go-logger v0.0.15
 	github.com/darwinOrg/go-monitor v0.0.11
 	github.com/darwinOrg/go-validator-ext v0.0.11
