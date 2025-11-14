@@ -248,14 +248,14 @@ func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt a
 	ctxJson, _ := json.Marshal(ctx)
 
 	if ll == LOG_LEVEL_ALL {
-		rpBytes, _ := dglogger.Json(rp)
-		rtBytes, _ := dglogger.Json(rt)
+		rpBytes, _ := json.Marshal(rp)
+		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, cost)
 	} else if ll == LOG_LEVEL_PARAM {
-		rpBytes, _ := dglogger.Json(rp)
+		rpBytes, _ := json.Marshal(rp)
 		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, cost)
 	} else if ll == LOG_LEVEL_RETURN {
-		rtBytes, _ := dglogger.Json(rt)
+		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, cost)
 	}
 }

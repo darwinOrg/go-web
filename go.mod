@@ -1,16 +1,16 @@
 module github.com/darwinOrg/go-web
 
-go 1.23.1
+go 1.24.1
 
 require (
-	github.com/darwinOrg/go-common v0.2.16
-	github.com/darwinOrg/go-httpclient v0.1.62
-	github.com/darwinOrg/go-logger v0.0.15
+	github.com/darwinOrg/go-common v0.2.21
+	github.com/darwinOrg/go-httpclient v0.1.64
+	github.com/darwinOrg/go-logger v0.0.17
 	github.com/darwinOrg/go-monitor v0.0.11
 	github.com/darwinOrg/go-validator-ext v0.0.11
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-gonic/gin v1.11.0
-	github.com/go-playground/validator/v10 v10.27.0
+	github.com/go-playground/validator/v10 v10.28.0
 )
 
 require (
@@ -49,12 +49,12 @@ require (
 	go.uber.org/zap v1.27.0 // indirect
 	go.yaml.in/yaml/v2 v2.4.2 // indirect
 	golang.org/x/arch v0.20.0 // indirect
-	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/mod v0.26.0 // indirect
-	golang.org/x/net v0.43.0 // indirect
-	golang.org/x/sync v0.16.0 // indirect
-	golang.org/x/sys v0.35.0 // indirect
-	golang.org/x/text v0.28.0 // indirect
-	golang.org/x/tools v0.35.0 // indirect
+	golang.org/x/crypto v0.44.0 // indirect
+	golang.org/x/mod v0.29.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/protobuf v1.36.9 // indirect
 )
