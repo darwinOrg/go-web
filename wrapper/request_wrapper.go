@@ -36,7 +36,7 @@ var (
 	EnableProductsCheck = true
 )
 
-type ReturnResultPostProcessor func(ctx *dgctx.DgContext, rt any)
+type ReturnResultPostProcessor func(ctx *dgctx.DgContext, url string, rt any)
 
 var returnResultPostProcessors []ReturnResultPostProcessor
 
@@ -221,7 +221,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 
 		if len(returnResultPostProcessors) > 0 {
 			for _, returnResultPostProcessor := range returnResultPostProcessors {
-				returnResultPostProcessor(ctx, rt)
+				returnResultPostProcessor(ctx, c.Request.URL.String(), rt)
 			}
 		}
 
