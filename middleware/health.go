@@ -10,7 +10,7 @@ import (
 
 func Health() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		if c.Request.RequestURI == "/health" {
+		if c.Request.RequestURI == "/health" || c.Request.RequestURI == "/" {
 			ctx := utils.GetDgContext(c)
 			dglogger.Info(ctx, "health check")
 			c.AbortWithStatusJSON(http.StatusOK, "ok")
