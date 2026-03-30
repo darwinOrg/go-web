@@ -155,13 +155,14 @@ func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 		Lang:          GetLang(c),
 		Token:         GetToken(c),
 		ShareToken:    GetShareToken(c),
-		RemoteIp:      GetHeader(c, constants.RemoteIp),
+		RemoteIp:      GetClientIP(c),
 		CompanyId:     getInt64Value(c, constants.CompanyId),
 		Product:       GetProduct(c),
 		Products:      GetProducts(c),
 		DepartmentIds: GetDepartmentIds(c),
 		Source:        GetSource(c),
 		Since:         GetSince(c),
+		OutUserId:     GetHeader(c, constants.OutUserId),
 	}
 
 	ctx.SetInnerContext(c.Request.Context())

@@ -22,14 +22,14 @@ func TestGet(t *testing.T) {
 	wrapper.RegisterSlowThresholdProcessor(func(ctx *dgctx.DgContext, url, remark string, req any, timeout, cost time.Duration) {
 		dglogger.Warnf(ctx, "请求超时, url: %s, remark: %s, req: %s, timeout: %v, cost: %v", url, remark, utils.MustConvertBeanToJsonString(req), timeout, cost)
 	})
-	wrapper.Get(&wrapper.RequestHolder[wrapper.EmptyRequest, *result.Result[*UserResponse]]{
+	wrapper.Get(&wrapper.RequestHolder[UserRequest, *result.Result[*UserResponse]]{
 		Remark:        "测试get接口",
 		RouterGroup:   engine.Group("/public"),
 		RelativePath:  "get",
 		NonLogin:      true,
 		EnableTracer:  true,
 		SlowThreshold: time.Second,
-		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *wrapper.EmptyRequest) *result.Result[*UserResponse] {
+		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
 			}
@@ -101,8 +101,8 @@ func handleSSE(c *gin.Context) {
 }
 
 type UserRequest struct {
-	Name     string    `json:"name" errMsg:"姓名错误:不能为空" remark:"名称"`
-	Age      int       `json:"age" remark:"年龄"`
+	Name     string    `json:"name" form:"name" errMsg:"姓名错误:不能为空" remark:"名称"`
+	Age      int       `json:"age" form:"age" remark:"年龄"`
 	UserInfo *userInfo `json:"userInfo"`
 }
 
