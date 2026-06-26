@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 	"mime"
 	"mime/multipart"
 	"strconv"
@@ -18,7 +19,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const DgContextKey = "DgContext"
+const (
+	DgContextKey          = "DgContext"
+	RequestStructParamKey = "RequestStructParam"
+)
 
 func GetLang(c *gin.Context) string {
 	if c == nil || c.Request == nil {
@@ -76,6 +80,14 @@ func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 	if len(c.Request.URL.Query()) > 0 {
 		for k := range c.Request.URL.Query() {
 			mp[k] = c.Query(k)
+		}
+	}
+
+	requestParam := GetRequestStructParam(c)
+	if requestParam != nil {
+		sjmp, _ := utils.StructJsonToMap(requestParam)
+		if sjmp != nil {
+			maps.Copy(mp, sjmp)
 		}
 	}
 
@@ -297,4 +309,13 @@ func getIntValue(c *gin.Context, header string) int {
 	}
 	val, _ := strconv.Atoi(h)
 	return val
+}
+
+func SetRequestStructParam(c *gin.Context, req any) {
+	c.Set(RequestStructParamKey, req)
+}
+
+func GetRequestStructParam(c *gin.Context) any {
+	req, _ := c.Get(RequestStructParamKey)
+	return req
 }

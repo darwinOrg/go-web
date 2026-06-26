@@ -218,6 +218,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		} else {
 			rt = rh.BizHandler(c, ctx, req)
 		}
+		utils.SetRequestStructParam(c, req)
 
 		if len(returnResultPostProcessors) > 0 {
 			for _, returnResultPostProcessor := range returnResultPostProcessors {
