@@ -37,9 +37,6 @@ func myRecover(c *gin.Context, err any) {
 
 func errorToResult(c *gin.Context, ctx *dgctx.DgContext, r any) any {
 	switch r.(type) {
-	case string:
-		processRecoverError(c, ctx, errors.New(r.(string)))
-		return result.SimpleFail[string](r.(string))
 	case *dgerr.DgError:
 		processRecoverError(c, ctx, r.(*dgerr.DgError))
 		return result.FailByError[*dgerr.DgError](r.(*dgerr.DgError))
@@ -47,9 +44,11 @@ func errorToResult(c *gin.Context, ctx *dgctx.DgContext, r any) any {
 		processRecoverError(c, ctx, r.(error))
 		if dgsys.IsProd() {
 			return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
-		} else {
-			return result.SimpleFail[string](r.(error).Error())
 		}
+		return result.SimpleFail[string](r.(error).Error())
+	case string:
+		processRecoverError(c, ctx, errors.New(r.(string)))
+		return result.SimpleFail[string](r.(string))
 	default:
 		processRecoverError(c, ctx, dgerr.SYSTEM_ERROR)
 		return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
