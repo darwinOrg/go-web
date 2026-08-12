@@ -2,7 +2,6 @@ package wrapper
 
 import (
 	"encoding/json"
-	"go/types"
 	"net/http"
 	"strings"
 	"time"
@@ -115,7 +114,7 @@ func LoginHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx := utils.GetDgContext(c)
 		if ctx.UserId == 0 {
 			dglogger.Warn(ctx, "not login in")
-			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NOT_LOGIN_IN))
+			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(dgerr.NOT_LOGIN_IN))
 			return
 		}
 
@@ -152,7 +151,7 @@ func CheckRolesHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		ctx := utils.GetDgContext(c)
 		if ctx.Roles == "" {
 			dglogger.Warn(ctx, "has no roles")
-			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
+			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(dgerr.NO_PERMISSION))
 			return
 		}
 
@@ -160,7 +159,7 @@ func CheckRolesHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		dgcoll.Intersection(roles, rh.AllowRoles)
 		if !dgcoll.ContainsAny(roles, rh.AllowRoles) {
 			dglogger.Warn(ctx, "has no allowed roles")
-			c.AbortWithStatusJSON(http.StatusOK, result.FailByError[types.Nil](dgerr.NO_PERMISSION))
+			c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(dgerr.NO_PERMISSION))
 			return
 		}
 
@@ -270,8 +269,4 @@ func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
 		RequestObject:  new(T),
 		ResponseObject: new(V),
 	})
-}
-
-func GetRequestApis() []*RequestApi {
-	return RequestApis
 }

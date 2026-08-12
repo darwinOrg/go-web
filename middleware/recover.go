@@ -45,7 +45,7 @@ func errorToResult(c *gin.Context, ctx *dgctx.DgContext, r any) any {
 		if dgsys.IsProd() {
 			return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
 		}
-		return result.SimpleFail[string](r.(error).Error())
+		return result.SimpleFailByError(r.(error))
 	case string:
 		processRecoverError(c, ctx, errors.New(r.(string)))
 		return result.SimpleFail[string](r.(string))

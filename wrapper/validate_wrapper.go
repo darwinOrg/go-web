@@ -9,7 +9,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var candidateValidatorTags = []string{"title", "remark", "json", "form", "label", "desc"}
+var candidateValidatorTags = []string{"remark", "json", "form", "title", "label", "desc"}
 
 func init() {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {

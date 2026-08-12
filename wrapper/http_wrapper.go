@@ -65,7 +65,7 @@ func writeHeaders(c *gin.Context, headers map[string][]string) {
 func adapterStatusCode(code int) int {
 	if code >= http.StatusInternalServerError {
 		return http.StatusInternalServerError
-	} else {
-		return code
 	}
+
+	return code
 }
