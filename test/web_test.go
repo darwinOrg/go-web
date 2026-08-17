@@ -2,6 +2,7 @@ package test
 
 import (
 	"fmt"
+	"net/http"
 
 	"testing"
 	"time"
@@ -19,8 +20,8 @@ import (
 func TestGet(t *testing.T) {
 	monitor.Start("test", 19002)
 	engine := wrapper.DefaultEngine()
-	wrapper.RegisterSlowThresholdProcessor(func(ctx *dgctx.DgContext, url, remark string, req any, timeout, cost time.Duration) {
-		dglogger.Warnf(ctx, "请求超时, url: %s, remark: %s, req: %s, timeout: %v, cost: %v", url, remark, utils.MustConvertBeanToJsonString(req), timeout, cost)
+	wrapper.RegisterSlowThresholdProcessor(func(ctx *dgctx.DgContext, request *http.Request, remark string, req any, timeout, cost time.Duration) {
+		dglogger.Warnf(ctx, "请求超时, url: %s, remark: %s, req: %s, timeout: %v, cost: %v", request.URL.String(), remark, utils.MustConvertBeanToJsonString(req), timeout, cost)
 	})
 	wrapper.Get(&wrapper.RequestHolder[UserRequest, *result.Result[*UserResponse]]{
 		Remark:        "测试get接口",
@@ -29,7 +30,7 @@ func TestGet(t *testing.T) {
 		NonLogin:      true,
 		EnableTracer:  true,
 		SlowThreshold: time.Second,
-		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
+		BizHandler: func(c *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
 			resp := &UserResponse{
 				LogUrl: "http://localhost:8080/a/b/c",
 			}
@@ -48,7 +49,7 @@ func TestPost(t *testing.T) {
 		RelativePath: "post",
 		NonLogin:     true,
 		EnableTracer: true,
-		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
+		BizHandler: func(c *gin.Context, ctx *dgctx.DgContext, request *UserRequest) *result.Result[*UserResponse] {
 			_, _ = dghttp.Client11.DoGet(ctx, "https://www.baidu.com",
 				map[string]string{
 					"param1": "param1 value",
@@ -78,8 +79,8 @@ func TestSSE(t *testing.T) {
 		RelativePath: "sse",
 		NonLogin:     true,
 		EnableTracer: true,
-		BizHandler: func(gc *gin.Context, ctx *dgctx.DgContext, request *result.Void) *result.Result[*result.Void] {
-			handleSSE(gc)
+		BizHandler: func(c *gin.Context, ctx *dgctx.DgContext, request *result.Void) *result.Result[*result.Void] {
+			handleSSE(c)
 			return result.SimpleSuccess()
 		},
 	})

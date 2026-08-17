@@ -21,36 +21,36 @@ type SseBody struct {
 	Data  any    `json:"data"`
 }
 
-func SimpleSseStream(gc *gin.Context, messageChan chan *SseBody, sendDoneEvent bool) {
-	SseStream(gc, func(w io.Writer) bool {
+func SimpleSseStream(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bool) {
+	SseStream(c, func(w io.Writer) bool {
 		msg, ok := <-messageChan
 		if ok {
-			SseEvent(gc, msg.Event, msg.Data)
+			SseEvent(c, msg.Event, msg.Data)
 		} else if sendDoneEvent {
-			SseDone(gc)
+			SseDone(c)
 		}
 		return ok
 	})
 }
 
-func SseStream(gc *gin.Context, step func(w io.Writer) bool) {
-	gc.Header("Content-Type", "text/event-stream;charset=utf-8")
-	gc.Header("Cache-Control", "no-cache")
-	gc.Header("Connection", "keep-alive")
+func SseStream(c *gin.Context, step func(w io.Writer) bool) {
+	c.Header("Content-Type", "text/event-stream;charset=utf-8")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
 
-	gc.Stream(step)
+	c.Stream(step)
 }
 
-func SseData(gc *gin.Context, message any) {
-	gc.SSEvent("data", message)
+func SseData(c *gin.Context, message any) {
+	c.SSEvent("data", message)
 }
 
-func SseDone(gc *gin.Context) {
-	gc.SSEvent("data", "DONE")
+func SseDone(c *gin.Context) {
+	c.SSEvent("data", "DONE")
 }
 
-func SseEvent(gc *gin.Context, event string, message any) {
-	gc.SSEvent(event, message)
+func SseEvent(c *gin.Context, event string, message any) {
+	c.SSEvent(event, message)
 }
 
 func SseMessage(messageChan chan *SseBody, event string, message any) {
@@ -60,58 +60,50 @@ func SseMessage(messageChan chan *SseBody, event string, message any) {
 	}
 }
 
-func SseForward(gc *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
-	var (
-		request *http.Request
-		err     error
-	)
-	if ctx.GetInnerContext() != nil {
-		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
-	} else {
-		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
-	}
+func SseForward(c *gin.Context, ctx *dgctx.DgContext, forwardUrl string) {
+	request, err := dghttp.CopyRequest(ctx, c.Request, forwardUrl, c.Request.Body)
 	if err != nil {
-		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
-	request.Header = gc.Request.Header
+
 	dghttp.WriteSseHeaders(request)
 
 	resp, err := DefaultSseHttpClient.DoRequestRaw(ctx, request)
 	if err != nil {
-		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
-	WriteSseResponse(gc, resp)
+	WriteSseResponse(c, resp)
 }
 
-func SseGet(gc *gin.Context, ctx *dgctx.DgContext, url string, params map[string]string, headers map[string]string) error {
+func SseGet(c *gin.Context, ctx *dgctx.DgContext, url string, params map[string]string, headers map[string]string) error {
 	resp, err := DefaultSseHttpClient.SseGet(ctx, url, params, headers)
 	if err != nil {
 		return err
 	}
 
-	WriteSseResponse(gc, resp)
+	WriteSseResponse(c, resp)
 	return nil
 }
 
-func SsePostJson(gc *gin.Context, ctx *dgctx.DgContext, url string, params any, headers map[string]string) error {
+func SsePostJson(c *gin.Context, ctx *dgctx.DgContext, url string, params any, headers map[string]string) error {
 	resp, err := DefaultSseHttpClient.SsePostJson(ctx, url, params, headers)
 	if err != nil {
 		return err
 	}
 
-	WriteSseResponse(gc, resp)
+	WriteSseResponse(c, resp)
 	return nil
 }
 
-func WriteSseResponse(gc *gin.Context, resp *http.Response) {
+func WriteSseResponse(c *gin.Context, resp *http.Response) {
 	defer func() { _ = resp.Body.Close() }()
 
 	statusCode := adapterStatusCode(resp.StatusCode)
-	gc.Status(statusCode)
-	writeHeaders(gc, resp.Header)
+	c.Status(statusCode)
+	writeHeaders(c, resp.Header)
 	reader := bufio.NewReader(resp.Body)
 
 	for {
@@ -121,8 +113,8 @@ func WriteSseResponse(gc *gin.Context, resp *http.Response) {
 		}
 
 		if len(rawLine) > 0 {
-			_, _ = gc.Writer.Write(rawLine)
-			gc.Writer.Flush()
+			_, _ = c.Writer.Write(rawLine)
+			c.Writer.Flush()
 		}
 
 		time.Sleep(sseDefaultSleepTime)

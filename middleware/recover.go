@@ -3,6 +3,7 @@ package middleware
 import (
 	"errors"
 	"net/http"
+	"strings"
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	dgerr "github.com/darwinOrg/go-common/enums/error"
@@ -13,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type RecoverProcessor func(ctx *dgctx.DgContext, url string, params map[string]any, err error)
+type RecoverProcessor func(ctx *dgctx.DgContext, request *http.Request, params map[string]any, err error)
 
 var recoverProcessors []RecoverProcessor
 
@@ -42,7 +43,7 @@ func errorToResult(c *gin.Context, ctx *dgctx.DgContext, r any) any {
 		return result.FailByError[*dgerr.DgError](r.(*dgerr.DgError))
 	case error:
 		processRecoverError(c, ctx, r.(error))
-		if dgsys.IsProd() {
+		if dgsys.IsProd() && !isInternalRequest(c) {
 			return result.SimpleFailByError(dgerr.SYSTEM_ERROR)
 		}
 		return result.SimpleFailByError(r.(error))
@@ -55,11 +56,16 @@ func errorToResult(c *gin.Context, ctx *dgctx.DgContext, r any) any {
 	}
 }
 
+func isInternalRequest(c *gin.Context) bool {
+	return strings.Split(c.Request.URL.Path, "/")[0] == "internal"
+}
+
 func processRecoverError(c *gin.Context, ctx *dgctx.DgContext, err error) {
 	if len(recoverProcessors) > 0 {
+		request := utils.MustRequest(c, ctx)
 		params := utils.GetAllRequestParams(c, ctx)
 		for _, processor := range recoverProcessors {
-			processor(ctx, c.Request.URL.Path, params, err)
+			processor(ctx, request, params, err)
 		}
 	}
 }

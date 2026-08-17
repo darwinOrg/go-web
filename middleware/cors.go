@@ -1,10 +1,17 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/darwinOrg/go-common/constants"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+var AllowMethods = []string{
+	http.MethodGet,
+	http.MethodPost,
+}
 
 var AllowOrigins = []string{
 	"*",
@@ -12,6 +19,7 @@ var AllowOrigins = []string{
 
 var AllowHeaders = []string{
 	constants.TraceId,
+	constants.SpanId,
 	constants.UID,
 	constants.OpId,
 	constants.RunAs,
@@ -23,11 +31,17 @@ var AllowHeaders = []string{
 	constants.Lang,
 	constants.Token,
 	constants.ShareToken,
+	constants.RemoteIp,
 	constants.CompanyId,
 	constants.Product,
+	constants.Products,
 	constants.DepartmentIds,
+	constants.LoginPlatform,
+	constants.TargetPlatform,
+	constants.Ticket,
 	constants.Source,
 	constants.Since,
+	constants.OutUserId,
 
 	"device-id",
 	"hardware",
@@ -48,6 +62,7 @@ var AllowHeaders = []string{
 
 func Cors() gin.HandlerFunc {
 	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowMethods = AllowMethods
 	corsConfig.AllowOrigins = AllowOrigins
 	corsConfig.AllowHeaders = AllowHeaders
 

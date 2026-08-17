@@ -35,7 +35,7 @@ var (
 	EnableProductsCheck = true
 )
 
-type ReturnResultPostProcessor func(ctx *dgctx.DgContext, url string, rt any)
+type ReturnResultPostProcessor func(ctx *dgctx.DgContext, request *http.Request, rt any)
 
 var returnResultPostProcessors []ReturnResultPostProcessor
 
@@ -45,7 +45,7 @@ func RegisterReturnResultPostProcessor(processor ReturnResultPostProcessor) {
 
 var DefaultSlowThreshold = 10 * time.Second
 
-type SlowThresholdProcessor func(ctx *dgctx.DgContext, url, remark string, req any, slowThreshold, cost time.Duration)
+type SlowThresholdProcessor func(ctx *dgctx.DgContext, request *http.Request, remark string, req any, slowThreshold, cost time.Duration)
 
 var slowThresholdProcessors []SlowThresholdProcessor
 
@@ -82,7 +82,7 @@ type RequestHolder[T any, V any] struct {
 
 type EmptyRequest struct{}
 
-type HandlerFunc[T any, V any] func(gc *gin.Context, dc *dgctx.DgContext, requestObj *T) V
+type HandlerFunc[T any, V any] func(c *gin.Context, dc *dgctx.DgContext, requestObj *T) V
 
 func Get[T any, V any](rh *RequestHolder[T, V]) {
 	rh.GET(rh.RelativePath, BuildHandlersChain(rh)...)
@@ -220,15 +220,17 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 		utils.SetRequestStructParam(c, req)
 
 		if len(returnResultPostProcessors) > 0 {
+			request := utils.MustRequest(c, ctx)
 			for _, returnResultPostProcessor := range returnResultPostProcessors {
-				returnResultPostProcessor(ctx, c.Request.URL.String(), rt)
+				returnResultPostProcessor(ctx, request, rt)
 			}
 		}
 
 		cost := time.Since(start)
 		if rh.SlowThreshold > 0 && cost > rh.SlowThreshold && len(slowThresholdProcessors) > 0 {
+			request := utils.MustRequest(c, ctx)
 			for _, slowThresholdProcessor := range slowThresholdProcessors {
-				slowThresholdProcessor(ctx, c.Request.URL.String(), rh.Remark, req, rh.SlowThreshold, cost)
+				slowThresholdProcessor(ctx, request, rh.Remark, req, rh.SlowThreshold, cost)
 			}
 		}
 

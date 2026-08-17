@@ -9,29 +9,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func HttpForward(gc *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {
-	var (
-		request *http.Request
-		err     error
-	)
-	if ctx.GetInnerContext() != nil {
-		request, err = http.NewRequestWithContext(ctx.GetInnerContext(), gc.Request.Method, forwardUrl, gc.Request.Body)
-	} else {
-		request, err = http.NewRequest(gc.Request.Method, forwardUrl, gc.Request.Body)
-	}
+func HttpForward(c *gin.Context, ctx *dgctx.DgContext, hc *dghttp.DgHttpClient, forwardUrl string) {
+	request, err := dghttp.CopyRequest(ctx, c.Request, forwardUrl, c.Request.Body)
 	if err != nil {
-		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
-	request.Header = gc.Request.Header
 	resp, err := hc.DoRequestRaw(ctx, request)
 	if err != nil {
-		gc.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
+		c.AbortWithStatusJSON(http.StatusOK, result.SimpleFailByError(err))
 		return
 	}
 
-	WriteResponse(gc, ctx, resp)
+	WriteResponse(c, ctx, resp)
 }
 
 func WriteResponse(c *gin.Context, ctx *dgctx.DgContext, response *http.Response) {

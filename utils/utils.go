@@ -8,6 +8,7 @@ import (
 	"maps"
 	"mime"
 	"mime/multipart"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/darwinOrg/go-common/constants"
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/utils"
+	dghttp "github.com/darwinOrg/go-httpclient"
 	dglogger "github.com/darwinOrg/go-logger"
 	"github.com/gin-gonic/gin"
 )
@@ -43,24 +45,7 @@ func GetLang(c *gin.Context) string {
 }
 
 func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
-	var body []byte
-
-	if !isGetOrHead(c) {
-		if cb, ok := c.Get(gin.BodyBytesKey); ok {
-			if cbb, ok := cb.([]byte); ok {
-				body = cbb
-			}
-		}
-
-		if len(body) == 0 {
-			body, _ = io.ReadAll(c.Request.Body)
-			if len(body) > 0 {
-				c.Set(gin.BodyBytesKey, body)
-				c.Request.Body = io.NopCloser(bytes.NewReader(body))
-			}
-		}
-	}
-
+	body := GetBodyBytes(c)
 	mp := map[string]any{}
 
 	if len(body) > 0 {
@@ -120,7 +105,7 @@ func parseMultipartForm(c *gin.Context, body []byte, mp map[string]any) error {
 func GetBodyBytes(c *gin.Context) []byte {
 	var body []byte
 
-	if !isGetOrHead(c) {
+	if IsPost(c) {
 		if cb, ok := c.Get(gin.BodyBytesKey); ok {
 			if cbb, ok := cb.([]byte); ok {
 				body = cbb
@@ -139,9 +124,8 @@ func GetBodyBytes(c *gin.Context) []byte {
 	return body
 }
 
-func isGetOrHead(c *gin.Context) bool {
-	return strings.EqualFold(c.Request.Method, "GET") ||
-		strings.EqualFold(c.Request.Method, "HEAD")
+func IsPost(c *gin.Context) bool {
+	return c.Request.Method == http.MethodPost
 }
 
 func GetDgContext(c *gin.Context) *dgctx.DgContext {
@@ -318,4 +302,32 @@ func SetRequestStructParam(c *gin.Context, req any) {
 func GetRequestStructParam(c *gin.Context) any {
 	req, _ := c.Get(RequestStructParamKey)
 	return req
+}
+
+func MustRequest(c *gin.Context, ctx *dgctx.DgContext) *http.Request {
+	request, _ := CopyRequest(c, ctx)
+	if request == nil {
+		request = c.Request
+	}
+	return request
+}
+
+func CopyRequest(c *gin.Context, ctx *dgctx.DgContext) (*http.Request, error) {
+	var body io.Reader
+	if cb, ok1 := c.Get(gin.BodyBytesKey); ok1 {
+		if cbb, ok2 := cb.([]byte); ok2 {
+			body = bytes.NewReader(cbb)
+		}
+	}
+
+	newCtx := ctx.Clone()
+	newCtx.TraceId = utils.MustRandomW3cTraceId()
+
+	request, err := dghttp.CopyRequest(newCtx, c.Request, "", body)
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set(constants.TraceId, newCtx.TraceId)
+
+	return request, nil
 }
