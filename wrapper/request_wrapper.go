@@ -247,7 +247,12 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 }
 
 func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, cost time.Duration, ll LogLevel) {
-	ctxJson, _ := json.Marshal(ctx)
+	cc := ctx.Clone()
+	cc.TraceId = ""
+	cc.UserId = 0
+	cc.Token = ""
+	cc.ShareToken = ""
+	ctxJson, _ := json.Marshal(cc)
 
 	if ll == LOG_LEVEL_ALL {
 		rpBytes, _ := json.Marshal(rp)
