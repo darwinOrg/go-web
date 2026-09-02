@@ -25,6 +25,7 @@ const (
 	LOG_LEVEL_PARAM   LogLevel = 1
 	LOG_LEVEL_RETURN  LogLevel = 2
 	LOG_LEVEL_ALL     LogLevel = 3
+	LOG_LEVEL_SIMPLE  LogLevel = 4
 	DEFAULT_LOG_LEVEL          = LOG_LEVEL_ALL
 )
 
@@ -247,12 +248,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 }
 
 func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, cost time.Duration, ll LogLevel) {
-	cc := ctx.Clone()
-	cc.TraceId = ""
-	cc.UserId = 0
-	cc.Token = ""
-	cc.ShareToken = ""
-	ctxJson, _ := json.Marshal(cc)
+	ctxJson := getDgContextJson(ctx)
 
 	if ll == LOG_LEVEL_ALL {
 		rpBytes, _ := json.Marshal(rp)
@@ -264,7 +260,15 @@ func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt a
 	} else if ll == LOG_LEVEL_RETURN {
 		rtBytes, _ := json.Marshal(rt)
 		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, cost)
+	} else if ll == LOG_LEVEL_SIMPLE {
+		dglogger.Infof(ctx, "path: %s, context: %s, cost: %13v", c.Request.URL.Path, ctxJson, cost)
 	}
+}
+
+func getDgContextJson(ctx *dgctx.DgContext) []byte {
+	cc := &dgctx.DgContext{Platform: ctx.Platform, CompanyId: ctx.CompanyId, Source: ctx.Source, OutUserId: ctx.OutUserId}
+	ctxJson, _ := json.Marshal(cc)
+	return ctxJson
 }
 
 func AppendRequestApi[T any, V any](rh *RequestHolder[T, V], method string) {
