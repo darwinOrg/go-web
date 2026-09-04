@@ -15,7 +15,6 @@ var AllowHeaders = []string{
 	constants.SpanId,
 	constants.UID,
 	constants.OpId,
-	constants.RunAs,
 	constants.Roles,
 	constants.BizTypes,
 	constants.GroupId,
@@ -33,6 +32,7 @@ var AllowHeaders = []string{
 	constants.TargetPlatform,
 	constants.Ticket,
 	constants.Source,
+	constants.Client,
 	constants.Since,
 	constants.OutUserId,
 

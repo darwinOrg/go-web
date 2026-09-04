@@ -26,24 +26,6 @@ const (
 	RequestStructParamKey = "RequestStructParam"
 )
 
-func GetLang(c *gin.Context) string {
-	if c == nil || c.Request == nil {
-		return ""
-	}
-
-	lng := GetHeader(c, constants.Lang)
-	if lng != "" {
-		return lng
-	}
-
-	lng = GetHeader(c, "Accept-Language")
-	if lng != "" {
-		return lng
-	}
-
-	return c.Query(constants.Lang)
-}
-
 func GetAllRequestParams(c *gin.Context, ctx *dgctx.DgContext) map[string]any {
 	body := GetBodyBytes(c)
 	mp := map[string]any{}
@@ -140,29 +122,28 @@ func GetDgContext(c *gin.Context) *dgctx.DgContext {
 func BuildDgContext(c *gin.Context) *dgctx.DgContext {
 	ctx := &dgctx.DgContext{
 		TraceId:       GetOrGenerateTraceId(c),
-		UserId:        GetUserId(c),
+		UserId:        getInt64Value(c, constants.UID),
 		OpId:          getInt64Value(c, constants.OpId),
-		RunAs:         getInt64Value(c, constants.RunAs),
 		Roles:         GetHeader(c, constants.Roles),
 		BizTypes:      getIntValue(c, constants.BizTypes),
 		GroupId:       getInt64Value(c, constants.GroupId),
-		Platform:      GetPlatform(c),
+		Platform:      GetHeaderOrPath(c, constants.Platform),
 		UserAgent:     GetHeader(c, constants.UserAgent),
 		Lang:          GetLang(c),
-		Token:         GetToken(c),
-		ShareToken:    GetShareToken(c),
+		Token:         GetHeaderOrPath(c, constants.Token),
+		ShareToken:    GetHeaderOrPath(c, constants.ShareToken),
 		RemoteIp:      GetClientIP(c),
 		CompanyId:     getInt64Value(c, constants.CompanyId),
 		Product:       GetProduct(c),
 		Products:      GetProducts(c),
 		DepartmentIds: GetDepartmentIds(c),
-		Source:        GetSource(c),
-		Since:         GetSince(c),
+		Source:        GetHeader(c, constants.Source),
+		Client:        GetHeader(c, constants.Client),
+		Since:         getInt64Value(c, constants.Since),
 		OutUserId:     GetHeader(c, constants.OutUserId),
 	}
 
 	ctx.SetInnerContext(c.Request.Context())
-
 	return ctx
 }
 
@@ -184,20 +165,22 @@ func GetOrGenerateTraceId(c *gin.Context) string {
 	return traceId
 }
 
-func GetUserId(c *gin.Context) int64 {
-	return getInt64Value(c, constants.UID)
-}
+func GetLang(c *gin.Context) string {
+	if c == nil || c.Request == nil {
+		return ""
+	}
 
-func GetToken(c *gin.Context) string {
-	return GetHeaderOrPath(c, constants.Token)
-}
+	lng := GetHeader(c, constants.Lang)
+	if lng != "" {
+		return lng
+	}
 
-func GetPlatform(c *gin.Context) string {
-	return GetHeaderOrPath(c, constants.Platform)
-}
+	lng = GetHeader(c, "Accept-Language")
+	if lng != "" {
+		return lng
+	}
 
-func GetShareToken(c *gin.Context) string {
-	return GetHeaderOrPath(c, constants.ShareToken)
+	return c.Query(constants.Lang)
 }
 
 func GetProduct(c *gin.Context) int {
@@ -223,14 +206,6 @@ func GetDepartmentIds(c *gin.Context) []int64 {
 		return dgcoll.SplitToIntsByComma[int64](departmentIds)
 	}
 	return []int64{}
-}
-
-func GetSource(c *gin.Context) string {
-	return GetHeader(c, constants.Source)
-}
-
-func GetSince(c *gin.Context) int64 {
-	return getInt64Value(c, constants.Since)
 }
 
 func GetClientIP(c *gin.Context) string {

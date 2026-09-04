@@ -266,7 +266,7 @@ func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt a
 }
 
 func getDgContextJson(ctx *dgctx.DgContext) []byte {
-	cc := &dgctx.DgContext{Platform: ctx.Platform, CompanyId: ctx.CompanyId, Source: ctx.Source, OutUserId: ctx.OutUserId}
+	cc := &dgctx.DgContext{Platform: ctx.Platform, CompanyId: ctx.CompanyId, Source: ctx.Source, Client: ctx.Client, OutUserId: ctx.OutUserId}
 	ctxJson, _ := json.Marshal(cc)
 	return ctxJson
 }
