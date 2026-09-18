@@ -12,6 +12,7 @@ import (
 	dgerr "github.com/darwinOrg/go-common/enums/error"
 	"github.com/darwinOrg/go-common/result"
 	dgsys "github.com/darwinOrg/go-common/sys"
+	cu "github.com/darwinOrg/go-common/utils"
 	dglogger "github.com/darwinOrg/go-logger"
 	ve "github.com/darwinOrg/go-validator-ext"
 	"github.com/darwinOrg/go-web/utils"
@@ -235,9 +236,7 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 			}
 		}
 
-		if rh.LogLevel != LOG_LEVEL_NONE {
-			printBizHandlerLog(c, ctx, req, rt, cost, rh.LogLevel)
-		}
+		printBizHandlerLog(c, ctx, req, rt, cost, rh.LogLevel)
 
 		if !c.Writer.Written() {
 			c.JSON(http.StatusOK, rt)
@@ -248,24 +247,29 @@ func BizHandler[T any, V any](rh *RequestHolder[T, V]) gin.HandlerFunc {
 }
 
 func printBizHandlerLog[T any](c *gin.Context, ctx *dgctx.DgContext, rp *T, rt any, cost time.Duration, ll LogLevel) {
-	ctxJson := getDgContextJson(ctx)
+	if ll == LOG_LEVEL_NONE {
+		return
+	}
+
+	ctxJson := jsonDgContext(ctx)
+	formatCost := cu.SimpleFormatDuration(cost)
 
 	if ll == LOG_LEVEL_ALL {
 		rpBytes, _ := json.Marshal(rp)
 		rtBytes, _ := json.Marshal(rt)
-		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, cost)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, result: %s, cost: %s", c.Request.URL.Path, ctxJson, rpBytes, rtBytes, formatCost)
 	} else if ll == LOG_LEVEL_PARAM {
 		rpBytes, _ := json.Marshal(rp)
-		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %13v", c.Request.URL.Path, ctxJson, rpBytes, cost)
+		dglogger.Infof(ctx, "path: %s, context: %s, params: %s, cost: %s", c.Request.URL.Path, ctxJson, rpBytes, formatCost)
 	} else if ll == LOG_LEVEL_RETURN {
 		rtBytes, _ := json.Marshal(rt)
-		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %13v", c.Request.URL.Path, ctxJson, rtBytes, cost)
+		dglogger.Infof(ctx, "path: %s, context: %s, result: %s, cost: %s", c.Request.URL.Path, ctxJson, rtBytes, formatCost)
 	} else if ll == LOG_LEVEL_SIMPLE {
-		dglogger.Infof(ctx, "path: %s, context: %s, cost: %13v", c.Request.URL.Path, ctxJson, cost)
+		dglogger.Infof(ctx, "path: %s, context: %s, cost: %s", c.Request.URL.Path, ctxJson, formatCost)
 	}
 }
 
-func getDgContextJson(ctx *dgctx.DgContext) []byte {
+func jsonDgContext(ctx *dgctx.DgContext) []byte {
 	cc := &dgctx.DgContext{Platform: ctx.Platform, CompanyId: ctx.CompanyId, Source: ctx.Source, Client: ctx.Client, OutUserId: ctx.OutUserId}
 	ctxJson, _ := json.Marshal(cc)
 	return ctxJson
