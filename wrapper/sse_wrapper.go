@@ -3,16 +3,14 @@ package wrapper
 import (
 	"bufio"
 	"io"
+	"log"
 	"net/http"
-	"time"
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	"github.com/gin-gonic/gin"
 )
-
-const sseDefaultSleepTime = time.Millisecond * 10
 
 var DefaultSseHttpClient = dghttp.NewHttpClient(dghttp.Http2Transport, 24*60*60)
 
@@ -28,6 +26,7 @@ func SimpleSseStream(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bo
 			SseEvent(c, msg.Event, msg.Data)
 		} else if sendDoneEvent {
 			SseDone(c)
+			log.Println("Send Done Event")
 		}
 		return ok
 	})
@@ -99,11 +98,11 @@ func SsePostJson(c *gin.Context, ctx *dgctx.DgContext, url string, params any, h
 }
 
 func WriteSseResponse(c *gin.Context, resp *http.Response) {
-	defer func() { _ = resp.Body.Close() }()
-
 	statusCode := adapterStatusCode(resp.StatusCode)
 	c.Status(statusCode)
 	writeHeaders(c, resp.Header)
+
+	defer func() { _ = resp.Body.Close() }()
 	reader := bufio.NewReader(resp.Body)
 
 	for {
@@ -116,7 +115,5 @@ func WriteSseResponse(c *gin.Context, resp *http.Response) {
 			_, _ = c.Writer.Write(rawLine)
 			c.Writer.Flush()
 		}
-
-		time.Sleep(sseDefaultSleepTime)
 	}
 }
