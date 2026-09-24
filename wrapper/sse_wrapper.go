@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"io"
 	"net/http"
+	"time"
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
@@ -38,26 +39,6 @@ func SseStream(c *gin.Context, step func(w io.Writer) bool) {
 	c.Stream(step)
 }
 
-func SimpleSseStream1(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bool) {
-	SseStream1(c, func(w io.Writer) bool {
-		msg, ok := <-messageChan
-		if ok {
-			SseEvent(c, msg.Event, msg.Data)
-		} else if sendDoneEvent {
-			SseDone(c)
-		}
-		return ok
-	})
-}
-
-func SseStream1(c *gin.Context, step func(w io.Writer) bool) {
-	c.Header("Content-Type", "text/event-stream;charset=utf-8")
-	c.Header("Cache-Control", "no-cache")
-	c.Header("Connection", "close")
-
-	c.Stream(step)
-}
-
 func SseData(c *gin.Context, message any) {
 	c.SSEvent("data", message)
 }
@@ -70,10 +51,16 @@ func SseEvent(c *gin.Context, event string, message any) {
 	c.SSEvent(event, message)
 }
 
-func SseMessage(messageChan chan *SseBody, event string, message any) {
-	messageChan <- &SseBody{
-		Event: event,
-		Data:  message,
+func SseMessage(c *gin.Context, messageChan chan *SseBody, event string, message any) {
+	doneChan := c.Request.Context().Done()
+	select {
+	case <-doneChan:
+		return
+	case <-time.After(time.Millisecond):
+		messageChan <- &SseBody{
+			Event: event,
+			Data:  message,
+		}
 	}
 }
 

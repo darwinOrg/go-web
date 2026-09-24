@@ -14,8 +14,8 @@ github.com/cloudwego/base64x v0.1.7 h1:NppS+Fgzg5ovhn4NkUXaDT3x9jldgH5ToMCqzBSi2
 github.com/cloudwego/base64x v0.1.7/go.mod h1:Cu1PV9zfrSf7ET2tIbWbbEy7jO7HHJ13q4X2SQ8aWYg=
 github.com/darwinOrg/go-common v0.2.39 h1:XPoT053Ha/feykSfJaV9FzknUcKBK2DYaCs/7ZibcAc=
 github.com/darwinOrg/go-common v0.2.39/go.mod h1:pItL/4ZV0bU64N2qD9ACpvDlYjeomAbheIzPXKqbb88=
-github.com/darwinOrg/go-httpclient v0.1.98 h1:nsCBfiMvHLoyyPDlOs5db239vVqD5Q6gV3bTcdfaKL4=
-github.com/darwinOrg/go-httpclient v0.1.98/go.mod h1:olnpcGpZuGDon+KtD/gzU29dwAyiFDvlQs+AGnB/aWk=
+github.com/darwinOrg/go-httpclient v0.1.99 h1:Zgk21p0hrA/P9Fbs3wYRvkdffSqAqgZDZPMkr0bfg8o=
+github.com/darwinOrg/go-httpclient v0.1.99/go.mod h1:olnpcGpZuGDon+KtD/gzU29dwAyiFDvlQs+AGnB/aWk=
 github.com/darwinOrg/go-logger v0.0.25 h1:UId9pu612VTxrLhsFhPTeZ2nZmRKq9jltrpdK4/v3Og=
 github.com/darwinOrg/go-logger v0.0.25/go.mod h1:RqYAT6Zln6uzU86wid/5SYj/Xaz93kmY4tAQVaS7gVQ=
 github.com/darwinOrg/go-monitor v0.0.13 h1:n4RGgvJY5cbYr1l2NaWixbDtLq3jr6QHGKOds0++0Ls=
@@ -146,5 +146,3 @@ gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
-resty.dev/v3 v3.0.0-rc.4 h1:n3360yEcFiyrX5Vkc9XG3Y8kMM24alRBxJ9Ev1mLmqs=
-resty.dev/v3 v3.0.0-rc.4/go.mod h1:NTOerrC/4T7/FE6tXIZGIysXXBdgNqwMZuKtxpea9NM=
