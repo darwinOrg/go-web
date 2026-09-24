@@ -3,7 +3,6 @@ package test
 import (
 	"fmt"
 	"net/http"
-
 	"testing"
 	"time"
 
@@ -80,25 +79,33 @@ func TestSSE(t *testing.T) {
 		NonLogin:     true,
 		EnableTracer: true,
 		BizHandler: func(c *gin.Context, ctx *dgctx.DgContext, request *result.Void) *result.Result[*result.Void] {
-			handleSSE(c)
+			messageChan := make(chan *wrapper.SseBody)
+
+			go func() {
+				defer close(messageChan)
+				for i := 0; i < 5; i++ {
+					wrapper.SseMessage(messageChan, "data", fmt.Sprintf(`{"key%d":%d}`, i, i))
+					time.Sleep(time.Second)
+				}
+			}()
+
+			wrapper.SimpleSseStream(c, messageChan, true)
 			return result.SimpleSuccess()
 		},
 	})
 	_ = engine.Run(fmt.Sprintf(":%d", 8080))
 }
 
-func handleSSE(c *gin.Context) {
-	messageChan := make(chan *wrapper.SseBody)
+func TestSSEClient(t *testing.T) {
+	ctx := dgctx.SimpleDgContext()
+	resp, err := dghttp.GlobalHttpClient.SseGet(ctx, "http://localhost:8080/public/sse", nil, nil)
+	if err != nil {
+		panic(err)
+	}
 
-	go func() {
-		defer close(messageChan)
-		for i := 0; i < 5; i++ {
-			messageChan <- &wrapper.SseBody{Event: "data", Data: i}
-			time.Sleep(time.Second)
-		}
-	}()
-
-	wrapper.SimpleSseStream(c, messageChan, true)
+	_ = dghttp.HandleSseData(resp, func(data string) {
+		dglogger.Info(ctx, data)
+	})
 }
 
 type UserRequest struct {
