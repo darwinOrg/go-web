@@ -25,7 +25,6 @@ func SimpleSseStream(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bo
 			SseEvent(c, msg.Event, msg.Data)
 		} else if sendDoneEvent {
 			SseDone(c)
-			c.Header("Connection", "close")
 		}
 		return ok
 	})
@@ -35,7 +34,26 @@ func SseStream(c *gin.Context, step func(w io.Writer) bool) {
 	c.Header("Content-Type", "text/event-stream;charset=utf-8")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
-	c.Header("X-Accel-Buffering", "no")
+
+	c.Stream(step)
+}
+
+func SimpleSseStream1(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bool) {
+	SseStream1(c, func(w io.Writer) bool {
+		msg, ok := <-messageChan
+		if ok {
+			SseEvent(c, msg.Event, msg.Data)
+		} else if sendDoneEvent {
+			SseDone(c)
+		}
+		return ok
+	})
+}
+
+func SseStream1(c *gin.Context, step func(w io.Writer) bool) {
+	c.Header("Content-Type", "text/event-stream;charset=utf-8")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "close")
 
 	c.Stream(step)
 }
