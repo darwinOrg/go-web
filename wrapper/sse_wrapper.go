@@ -2,28 +2,16 @@ package wrapper
 
 import (
 	"bufio"
-	"context"
-	"crypto/tls"
 	"io"
-	"log"
-	"net"
 	"net/http"
 
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/net/http2"
 )
 
-var DefaultSseHttpClient = dghttp.NewHttpClient(&http2.Transport{
-	// So http2.Transport doesn't complain the URL scheme isn't 'https'
-	AllowHTTP: true,
-	// Pretend we are dialing a TLS endpoint. (Note, we ignore the passed tls.Config)
-	DialTLSContext: func(ctx context.Context, network, addr string, cfg *tls.Config) (net.Conn, error) {
-		return net.Dial(network, addr)
-	},
-}, 24*60*60)
+var DefaultSseHttpClient = dghttp.NewHttpClient(dghttp.Http2Transport, 24*60*60)
 
 type SseBody struct {
 	Event string `json:"event"`
@@ -37,7 +25,7 @@ func SimpleSseStream(c *gin.Context, messageChan chan *SseBody, sendDoneEvent bo
 			SseEvent(c, msg.Event, msg.Data)
 		} else if sendDoneEvent {
 			SseDone(c)
-			log.Println("Send Done Event")
+			c.Header("Connection", "close")
 		}
 		return ok
 	})
@@ -47,6 +35,7 @@ func SseStream(c *gin.Context, step func(w io.Writer) bool) {
 	c.Header("Content-Type", "text/event-stream;charset=utf-8")
 	c.Header("Cache-Control", "no-cache")
 	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
 
 	c.Stream(step)
 }

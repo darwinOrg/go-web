@@ -83,7 +83,7 @@ func TestSSE(t *testing.T) {
 
 			go func() {
 				defer close(messageChan)
-				for i := 0; i < 5; i++ {
+				for i := 0; i < 100; i++ {
 					wrapper.SseMessage(messageChan, "data", fmt.Sprintf(`{"key%d":%d}`, i, i))
 					time.Sleep(time.Second)
 				}
