@@ -9,6 +9,8 @@ import (
 	dgctx "github.com/darwinOrg/go-common/context"
 	"github.com/darwinOrg/go-common/result"
 	dghttp "github.com/darwinOrg/go-httpclient"
+	dglogger "github.com/darwinOrg/go-logger"
+	"github.com/darwinOrg/go-web/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -115,6 +117,12 @@ func WriteSseResponse(c *gin.Context, resp *http.Response) {
 	for {
 		rawLine, readErr := reader.ReadBytes('\n')
 		if readErr == io.EOF {
+			break
+		}
+
+		if readErr != nil {
+			ctx := utils.GetDgContext(c)
+			dglogger.Errorf(ctx, "[SseForward] read error: %v", readErr)
 			break
 		}
 
