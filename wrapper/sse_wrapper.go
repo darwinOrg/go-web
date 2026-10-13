@@ -14,6 +14,8 @@ import (
 
 var DefaultSseHttpClient = dghttp.NewHttpClient(dghttp.Http2Transport, 24*60*60)
 
+const sseDefaultSleepTime = time.Millisecond * 10
+
 type SseBody struct {
 	Event string `json:"event"`
 	Data  any    `json:"data"`
@@ -120,5 +122,7 @@ func WriteSseResponse(c *gin.Context, resp *http.Response) {
 			_, _ = c.Writer.Write(rawLine)
 			c.Writer.Flush()
 		}
+
+		time.Sleep(sseDefaultSleepTime)
 	}
 }
